@@ -325,3 +325,43 @@ body, html {
     min-width: 200px;
     max-width: 400px;
 }
+
+/* JSON editor styles */
+.json-editor {
+    padding: 8px;
+    background: #2d3748;
+    border-radius: 4px;
+    margin: 8px;
+}
+
+.json-field {
+    margin-bottom: 8px;
+}
+
+.json-label {
+    display: block;
+    font-size: 12px;
+    color: #a0aec0;
+    margin-bottom: 4px;
+}
+
+.json-input {
+    width: 100%;
+    padding: 4px 8px;
+    background: #4a5568;
+    border: 1px solid #586479;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 12px;
+}
+
+.json-input:focus {
+    outline: none;
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 1px rgba(99, 179, 237, 0.2);
+}
+
+/* Adjust node size for Input type */
+.node[data-node-type="Inputs"] {
+    min-width: 250px;
+}

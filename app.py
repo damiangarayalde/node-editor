@@ -26,12 +26,19 @@ def handle_nodes():
                     'id': 1, 
                     'x': 100, 
                     'y': 100, 
-                    'width': 200,
+                    'width': 250,
                     'height': 100,
-                    'type': 'Inputs',  # Changed from 'default' to 'Inputs'
+                    'type': 'Inputs',
                     'title': 'Inputs 1',
                     'inputs': [{'id': 'in_1', 'name': 'Input'}],
-                    'outputs': [{'id': 'out_1', 'name': 'Output'}]
+                    'outputs': [{'id': 'out_1', 'name': 'Output'}],
+                    'data': {
+                        'name': '',
+                        'surname': '',
+                        'dateOfBirth': '',
+                        'dni': '',
+                        'address': ''
+                    }
                 },
                 {
                     'id': 2, 

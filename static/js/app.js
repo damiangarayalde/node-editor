@@ -111,20 +111,27 @@ class NodeEditor extends EventEmitter {
         this.editor.addEventListener('drop', (e) => e.preventDefault());
     }
 
+    // Update the addNode method to include default JSON data
     addNode(x = 100, y = 100, type = 'default') {
-        console.log('Adding node:', {x, y, type}); // Add debug logging
-    
         const nodeId = this.nextNodeId++;
         const node = {
             id: nodeId,
             x,
             y,
-            width: 200,
+            width: 250, // Increased width for JSON fields
             height: 100,
             type: type,
             title: `${type} ${nodeId}`,
             inputs: [{ id: `in_${nodeId}`, name: 'Input' }],
-            outputs: [{ id: `out_${nodeId}`, name: 'Output' }]
+            outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
+            // Add default data for Input nodes
+            data: type === 'Inputs' ? {
+                name: '',
+                surname: '',
+                dateOfBirth: '',
+                dni: '',
+                address: ''
+            } : null
         };
         
         this.nodes.push(node);
@@ -132,6 +139,7 @@ class NodeEditor extends EventEmitter {
         return node;
     }
 
+    // Update the renderNode method to include JSON fields for Input nodes
     renderNode(node) {
         const nodeEl = document.createElement('div');
         nodeEl.className = 'node';
@@ -189,6 +197,44 @@ class NodeEditor extends EventEmitter {
         
         // Add buttons for Input type nodes
         if (node.type === 'Inputs') {
+            // Add JSON editor before the buttons
+            const jsonEditor = document.createElement('div');
+            jsonEditor.className = 'json-editor';
+            
+            const fields = [
+                { key: 'name', label: 'Name' },
+                { key: 'surname', label: 'Surname' },
+                { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+                { key: 'dni', label: 'DNI' },
+                { key: 'address', label: 'Address' }
+            ];
+
+            fields.forEach(field => {
+                const fieldContainer = document.createElement('div');
+                fieldContainer.className = 'json-field';
+                
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                label.className = 'json-label';
+                
+                const input = document.createElement('input');
+                input.type = field.type || 'text';
+                input.value = node.data?.[field.key] || '';
+                input.className = 'json-input';
+                
+                input.addEventListener('change', (e) => {
+                    node.data = node.data || {};
+                    node.data[field.key] = e.target.value;
+                    console.log('Updated node data:', node.data);
+                });
+                
+                fieldContainer.appendChild(label);
+                fieldContainer.appendChild(input);
+                jsonEditor.appendChild(fieldContainer);
+            });
+            
+            content.appendChild(jsonEditor);
+
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'node-buttons';
             buttonContainer.style.display = 'flex';
