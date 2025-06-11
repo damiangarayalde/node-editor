@@ -1,0 +1,63 @@
+from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask_cors import CORS
+import os
+
+app = Flask(__name__, 
+            static_folder=os.path.abspath('static'),
+            template_folder=os.path.abspath('templates'))
+CORS(app)
+
+# Serve static files from the root
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('static', path)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/api/nodes', methods=['GET', 'POST'])
+def handle_nodes():
+    if request.method == 'GET':
+        # Return sample nodes for now
+        return jsonify({
+            'nodes': [
+                {
+                    'id': 1, 
+                    'x': 100, 
+                    'y': 100, 
+                    'width': 200,
+                    'height': 100,
+                    'type': 'default',
+                    'title': 'Start Node',
+                    'inputs': [{'id': 'in_1', 'name': 'Input'}],
+                    'outputs': [{'id': 'out_1', 'name': 'Output'}]
+                },
+                {
+                    'id': 2, 
+                    'x': 400, 
+                    'y': 100, 
+                    'width': 200,
+                    'height': 100,
+                    'type': 'default',
+                    'title': 'End Node',
+                    'inputs': [{'id': 'in_2', 'name': 'Input'}],
+                    'outputs': [{'id': 'out_2', 'name': 'Output'}]
+                }
+            ],
+            'connections': []
+        })
+    elif request.method == 'POST':
+        # Save node data
+        data = request.get_json()
+        print("Received nodes:", data.get('nodes', []))
+        print("Received connections:", data.get('connections', []))
+        return jsonify({'status': 'success'})
+
+if __name__ == '__main__':
+    # Ensure the static and template folders exist
+    os.makedirs('static', exist_ok=True)
+    os.makedirs('templates', exist_ok=True)
+    
+    # Run the app
+    app.run(host='0.0.0.0', port=5001, debug=True)

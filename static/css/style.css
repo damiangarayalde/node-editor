@@ -1,0 +1,282 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background-color: #1e1e2e;
+    color: #e0e0e0;
+}
+
+/* App layout */
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Toolbar */
+.toolbar {
+    background: #2c3e50;
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toolbar button {
+    padding: 8px 16px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.toolbar button:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.toolbar button:active {
+    transform: translateY(1px);
+}
+
+/* Editor */
+.editor {
+    flex: 1;
+    position: relative;
+    background: #1e1e2e;
+    overflow: hidden;
+}
+
+.nodes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.node {
+    position: absolute;
+    background: #2d3748;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    pointer-events: auto;
+    user-select: none;
+    transition: box-shadow 0.2s ease;
+    padding: 0;  /* Add this */
+}
+
+.node:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.node-header {
+    background: #2c5282;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 500;
+    cursor: move;
+    user-select: none;
+}
+
+.node-content {
+    padding: 5px;
+}
+
+.node-inputs,
+.node-outputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.node-input,
+.node-output {
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-height: 30px;  /* Increase height for better spacing */
+    padding: 0 20px;   /* Add padding */
+}
+
+.node-input {
+    justify-content: flex-start;
+}
+
+.node-output {
+    justify-content: flex-end;
+}
+
+.connector {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #4a5568;
+    border: 2px solid #2d3748;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: absolute;  
+    z-index: 10;
+    top: 50%;
+    transform: translateY(-50%) scale(1); /* Add scale(1) to base state */
+}
+
+.connector:hover, .connector.dragging {
+    transform: translateY(-50%) scale(1.4); /* Combine translateY with scale */
+    background: #63b3ed;
+    box-shadow: 0 0 0 1px rgba(99, 179, 237, 0.5);
+}
+
+.connector.input-connector {
+    background: #48bb78; /* Green for input */
+    left: -10px; /* Half the width to center on edge */
+    margin-right: 0; /* Remove margin */
+}
+
+.connector.output-connector {
+    background: #ed8936; /* Orange for output */
+    right: -10px; /* Half the width to center on edge */
+    margin-left: 0; /* Remove margin */
+}
+
+.connector.connected {
+    background: #9f7aea; /* Purple for connected */
+}
+
+.connector.highlight {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 179, 237, 0.7); }
+    70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(99, 179, 237, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 179, 237, 0); }
+}
+
+
+.connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.connection {
+    stroke: #63b3ed;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    transition: all 0.2s ease;
+    filter: drop-shadow(0 0 2px rgba(99, 179, 237, 0.5));
+    cursor: pointer;
+}
+
+.connection:hover {
+    stroke: #90caf9;
+    stroke-width: 3.5;
+    filter: drop-shadow(0 0 6px rgba(144, 202, 249, 0.8));
+}
+
+.connection.selected {
+    stroke: #ff9800;
+    stroke-width: 3.5;
+    filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.9));
+}
+
+.connection.temp {
+    stroke: #a0aec0;
+    stroke-dasharray: 5, 3;
+    animation: dash 1s linear infinite;
+}
+
+.connection.invalid {
+    stroke: #f56565;
+    stroke-dasharray: 5, 3;
+    animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 20;
+    }
+}
+
+/* Context menu */
+.context-menu {
+    position: absolute;
+    background: #2d3748;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 150px;
+    overflow: hidden;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #4a5568;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+
+/* Node selection */
+.node.selected {
+    box-shadow: 0 0 0 2px #63b3ed;
+}
+
+/* Connection line animation */
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+
+.connection.animated {
+    stroke-dasharray: 10, 5;
+    animation: dash 20s linear infinite;
+}
+
+/* Add spacing for connector labels */
+.node-input span {
+    margin-left: -5px;  /* Space for input connector */
+}
+
+.node-output span {
+    margin-right: -5px; /* Space for output connector */
+}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <div class="toolbar">
+            <button class="node-type-btn" data-node-type="Inputs">
+                <span>+</span> Inputs
+            </button>
+            <button class="node-type-btn" data-node-type="Documents">
+                <span>+</span> Documents
+            </button>
+            <button class="node-type-btn" data-node-type="Outputs">
+                <span>+</span> Outputs
+            </button>
+            <button id="save" title="Save (Ctrl+S)">
+                💾 Save
+            </button>
+        </div>
+        <div id="editor" class="editor">
+            <svg id="connections" class="connections"></svg>
+            <div id="nodes" class="nodes">
+                <!-- Nodes will be added here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection line template -->
+    <template id="connection-template">
+        <path class="connection" d="" />
+    </template>
+
+    <!-- Context menu template -->
+    <div id="context-menu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" data-action="delete">Delete</div>
+        <div class="context-menu-item" data-action="duplicate">Duplicate</div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
