@@ -35,13 +35,15 @@ class EventEmitter {
 class NodeEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
     static createConnectionPath(x1, y1, x2, y2) {
+        const deltaX = Math.abs(x2 - x1);
+        const curve = Math.min(deltaX * 0.5, 100); // Limit the curve size
+        
         // Calculate control points for a smooth curve
-        const cp1x = x1 + Math.abs(x2 - x1) / 2;
+        const cp1x = x1 + curve;
         const cp1y = y1;
-        const cp2x = cp1x;
+        const cp2x = x2 - curve;
         const cp2y = y2;
         
-        // Create a cubic bezier curve path
         return `M${x1},${y1} C${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
     }
     constructor() {
@@ -333,7 +335,7 @@ class NodeEditor extends EventEmitter {
         const editorRect = this.editor.getBoundingClientRect();
         const x1 = this.connectionStart.x;
         const y1 = this.connectionStart.y;
-        const x2 = e.clientX - editorRect.left;
+        const x2 = e.clientX; //- editorRect.left;
         const y2 = e.clientY - editorRect.top;
         
         // Update the temporary connection path
@@ -465,24 +467,26 @@ class NodeEditor extends EventEmitter {
         
         // Update all connections
         this.connections.forEach(conn => {
-            const sourceEl = this.nodesContainer.querySelector(`[data-connector-id="${conn.source}"]`);
-            const targetEl = this.nodesContainer.querySelector(`[data-connector-id="${conn.target}"]`);
+            const sourceConnector = document.querySelector(`[data-connector-id="${conn.source}"]`);
+            const targetConnector = document.querySelector(`[data-connector-id="${conn.target}"]`);
             
-            if (sourceEl && targetEl) {
-                const sourceRect = sourceEl.getBoundingClientRect();
-                const targetRect = targetEl.getBoundingClientRect();
+            if (sourceConnector && targetConnector) {
+                const sourceRect = sourceConnector.getBoundingClientRect();
+                const targetRect = targetConnector.getBoundingClientRect();
                 const editorRect = this.editor.getBoundingClientRect();
                 
-                // Calculate center points of connectors
-                const x1 = sourceRect.left + (sourceRect.width / 2) - editorRect.left;
+                // Calculate center points of the connector circles
+                const x1 = sourceRect.left - editorRect.left + sourceRect.width ;
                 const y1 = sourceRect.top + (sourceRect.height / 2) - editorRect.top;
-                const x2 = targetRect.left + (targetRect.width / 2) - editorRect.left;
+                const x2 = targetRect.left - editorRect.left;  
                 const y2 = targetRect.top + (targetRect.height / 2) - editorRect.top;
-                
+
+
                 // Create path for the connection
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', NodeEditor.createConnectionPath(x1, y1, x2, y2));
                 path.classList.add('connection');
+                path.dataset.connectionId = conn.id;
                 
                 // Add connection to SVG
                 this.connectionsSvg.appendChild(path);
