@@ -666,12 +666,13 @@ class NodeEditor extends EventEmitter {
                     node.outputs.some(output => output.id === connection.source)
                 );
                 
-                if (sourceNode) {
+                if (sourceNode && sourceNode.data) {
                     // Find the textarea in the output node
                     const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
                     const textarea = nodeEl.querySelector('.node-textarea');
                     if (textarea) {
-                        textarea.value = `From block "${sourceNode.title}"\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
+                        const personName = sourceNode.data.name || 'Unnamed';
+                        textarea.value = `From: ${personName}\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
                     }
                 }
             }
