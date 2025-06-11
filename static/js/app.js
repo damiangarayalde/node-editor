@@ -155,6 +155,35 @@ class NodeEditor extends EventEmitter {
         const content = document.createElement('div');
         content.className = 'node-content';
         
+        // Add buttons for Input type nodes
+        if (node.type === 'Inputs') {
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'node-buttons';
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.gap = '8px';
+            buttonContainer.style.padding = '8px';
+            
+            const loadButton = document.createElement('button');
+            loadButton.textContent = 'Load';
+            loadButton.className = 'node-button';
+            loadButton.onclick = (e) => {
+                e.stopPropagation();
+                console.log('Load clicked for node:', node.id);
+            };
+            
+            const validateButton = document.createElement('button');
+            validateButton.textContent = 'Validate';
+            validateButton.className = 'node-button';
+            validateButton.onclick = (e) => {
+                e.stopPropagation();
+                console.log('Validate clicked for node:', node.id);
+            };
+            
+            buttonContainer.appendChild(loadButton);
+            buttonContainer.appendChild(validateButton);
+            content.appendChild(buttonContainer);
+        }
+        
         // Inputs
         const inputs = document.createElement('div');
         inputs.className = 'node-inputs';

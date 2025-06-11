@@ -280,3 +280,23 @@ body, html {
 .node-output span {
     margin-right: -5px; /* Space for output connector */
 }
+
+/* Node button styles */
+.node-button {
+    padding: 4px 8px;
+    background: #4a5568;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.node-button:hover {
+    background: #2d3748;
+}
+
+.node-button:active {
+    transform: translateY(1px);
+}
