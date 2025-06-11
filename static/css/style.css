@@ -300,3 +300,28 @@ body, html {
 .node-button:active {
     transform: translateY(1px);
 }
+
+/* Node textarea styles */
+.node-textarea {
+    background: #2d3748;
+    color: #e0e0e0;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    width: 100%;
+    overflow: auto;
+}
+
+.node-textarea:focus {
+    outline: none;
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.2);
+}
+
+.node-text-container {
+    min-width: 200px;
+    max-width: 400px;
+}

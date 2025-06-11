@@ -155,6 +155,24 @@ class NodeEditor extends EventEmitter {
         const content = document.createElement('div');
         content.className = 'node-content';
         
+        // Add text window for Output type nodes
+        if (node.type === 'Outputs') {
+            const textContainer = document.createElement('div');
+            textContainer.className = 'node-text-container';
+            textContainer.style.position = 'relative';
+            textContainer.style.margin = '8px';
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'node-textarea';
+            textarea.value = 'Contrato de compraventa entre Juan Perez y Tito Fuentes';
+            textarea.style.resize = 'both';
+            textarea.style.minHeight = '100px';
+            textarea.style.width = '100%';
+            
+            textContainer.appendChild(textarea);
+            content.appendChild(textContainer);
+        }
+        
         // Add buttons for Input type nodes
         if (node.type === 'Inputs') {
             const buttonContainer = document.createElement('div');
