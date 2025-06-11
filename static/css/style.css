@@ -303,9 +303,9 @@ body, html {
 
 /* Node textarea styles */
 .node-textarea {
-    background: #2d3748;
+    background: #526073; /* Changed from #536685 to a lighter shade */
     color: #e0e0e0;
-    border: 1px solid #4a5568;
+    border: 1px solid #586479;
     border-radius: 4px;
     padding: 8px;
     font-family: inherit;
@@ -318,7 +318,7 @@ body, html {
 .node-textarea:focus {
     outline: none;
     border-color: #63b3ed;
-    box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.2);
+    box-shadow: 0 0 0 2px rgba(119, 171, 207, 0.2);
 }
 
 .node-text-container {

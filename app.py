@@ -19,7 +19,7 @@ def index():
 @app.route('/api/nodes', methods=['GET', 'POST'])
 def handle_nodes():
     if request.method == 'GET':
-        # Return sample nodes for now
+        # Return initial nodes with Input and Output types
         return jsonify({
             'nodes': [
                 {
@@ -28,8 +28,8 @@ def handle_nodes():
                     'y': 100, 
                     'width': 200,
                     'height': 100,
-                    'type': 'default',
-                    'title': 'Start Node',
+                    'type': 'Inputs',  # Changed from 'default' to 'Inputs'
+                    'title': 'Inputs 1',
                     'inputs': [{'id': 'in_1', 'name': 'Input'}],
                     'outputs': [{'id': 'out_1', 'name': 'Output'}]
                 },
@@ -39,8 +39,8 @@ def handle_nodes():
                     'y': 100, 
                     'width': 200,
                     'height': 100,
-                    'type': 'default',
-                    'title': 'End Node',
+                    'type': 'Outputs',  # Changed from 'default' to 'Outputs'
+                    'title': 'Outputs 2',
                     'inputs': [{'id': 'in_2', 'name': 'Input'}],
                     'outputs': [{'id': 'out_2', 'name': 'Output'}]
                 }
