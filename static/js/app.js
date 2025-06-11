@@ -164,13 +164,27 @@ class NodeEditor extends EventEmitter {
             
             const textarea = document.createElement('textarea');
             textarea.className = 'node-textarea';
-            textarea.value = 'Contrato de compraventa entre Juan Perez y Tito Fuentes';
+            
+            // Check if this output has a connection
+            const connection = this.connections.find(conn => 
+                node.inputs.some(input => input.id === conn.target)
+            );
+            
+            textarea.value = connection ? 
+                '' : // Will be updated by updateOutputText if connected
+                'Contrato de compraventa entre Juan Perez y Tito Fuentes';
+                
             textarea.style.resize = 'both';
             textarea.style.minHeight = '100px';
             textarea.style.width = '100%';
             
             textContainer.appendChild(textarea);
             content.appendChild(textContainer);
+            
+            // Update text if there's a connection
+            if (connection) {
+                this.updateOutputText(node.inputs[0].id);
+            }
         }
         
         // Add buttons for Input type nodes
@@ -502,11 +516,12 @@ class NodeEditor extends EventEmitter {
             });
             
             this.updateConnections();
+            this.updateOutputText(targetId); // Add this line
             
             // Emit event
             this.emit('connectionCreated', { sourceId, targetId });
         }
-    }
+   }
 
     updateConnections() {
         // Clear existing connections
@@ -586,6 +601,34 @@ class NodeEditor extends EventEmitter {
         } catch (error) {
             console.error('Error saving nodes:', error);
             alert('Failed to save nodes');
+        }
+    }
+
+    // Add this method to NodeEditor class
+    updateOutputText(targetId) {
+        // Find the output node element
+        const outputNode = this.nodes.find(node => {
+            return node.type === 'Outputs' && node.inputs.some(input => input.id === targetId);
+        });
+        
+        if (outputNode) {
+            // Find the connection to this output's input
+            const connection = this.connections.find(conn => conn.target === targetId);
+            if (connection) {
+                // Find the source node
+                const sourceNode = this.nodes.find(node => 
+                    node.outputs.some(output => output.id === connection.source)
+                );
+                
+                if (sourceNode) {
+                    // Find the textarea in the output node
+                    const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
+                    const textarea = nodeEl.querySelector('.node-textarea');
+                    if (textarea) {
+                        textarea.value = `From block "${sourceNode.title}"\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
+                    }
+                }
+            }
         }
     }
 }
