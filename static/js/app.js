@@ -658,21 +658,30 @@ class NodeEditor extends EventEmitter {
         });
         
         if (outputNode) {
-            // Find the connection to this output's input
-            const connection = this.connections.find(conn => conn.target === targetId);
-            if (connection) {
-                // Find the source node
-                const sourceNode = this.nodes.find(node => 
-                    node.outputs.some(output => output.id === connection.source)
-                );
+            // Find all connections to this output's input
+            const connections = this.connections.filter(conn => conn.target === targetId);
+            
+            if (connections.length > 0) {
+                // Find all source nodes
+                const sourceNodes = connections.map(connection => 
+                    this.nodes.find(node => 
+                        node.outputs.some(output => output.id === connection.source)
+                    )
+                ).filter(node => node && node.data);
                 
-                if (sourceNode && sourceNode.data) {
+                if (sourceNodes.length > 0) {
                     // Find the textarea in the output node
                     const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
                     const textarea = nodeEl.querySelector('.node-textarea');
                     if (textarea) {
-                        const personName = sourceNode.data.name || 'Unnamed';
-                        textarea.value = `From: ${personName}\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
+                        // Collect all names
+                        const names = sourceNodes
+                            .map(node => node.data.name)
+                            .filter(name => name) // Filter out empty names
+                            .join(', ');
+                        
+                        const fromText = names || 'Unnamed';
+                        textarea.value = `From: ${fromText}\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
                     }
                 }
             }
