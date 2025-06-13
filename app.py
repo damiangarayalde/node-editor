@@ -48,7 +48,10 @@ def handle_nodes():
                     'height': 100,
                     'type': 'Outputs',  # Changed from 'default' to 'Outputs'
                     'title': 'Outputs 2',
-                    'inputs': [{'id': 'in_2', 'name': 'Input'}],
+                    'inputs': [
+                        {'id': 'in_2_vendedor', 'name': 'Vendedor'},
+                        {'id': 'in_2_comprador', 'name': 'Comprador'}
+                    ],
                     'outputs': [{'id': 'out_2', 'name': 'Output'}]
                 }
             ],

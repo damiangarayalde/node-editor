@@ -118,13 +118,15 @@ class NodeEditor extends EventEmitter {
             id: nodeId,
             x,
             y,
-            width: 250, // Increased width for JSON fields
-            height: 100,
+            width: 250,
+            height: type === 'Outputs' ? 150 : 100, // Increased height for Output nodes
             type: type,
             title: `${type} ${nodeId}`,
-            inputs: [{ id: `in_${nodeId}`, name: 'Input' }],
+            inputs: type === 'Outputs' ? [
+                { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
+                { id: `in_${nodeId}_comprador`, name: 'Comprador' }
+            ] : [{ id: `in_${nodeId}`, name: 'Input' }],
             outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            // Add default data for Input nodes
             data: type === 'Inputs' ? {
                 name: '',
                 surname: '',
@@ -658,32 +660,33 @@ class NodeEditor extends EventEmitter {
         });
         
         if (outputNode) {
-            // Find all connections to this output's input
-            const connections = this.connections.filter(conn => conn.target === targetId);
+            // Get connections for both inputs
+            const vendedorConn = this.connections.find(conn => 
+                conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
+            );
+            const compradorConn = this.connections.find(conn => 
+                conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
+            );
             
-            if (connections.length > 0) {
-                // Find all source nodes
-                const sourceNodes = connections.map(connection => 
-                    this.nodes.find(node => 
-                        node.outputs.some(output => output.id === connection.source)
-                    )
-                ).filter(node => node && node.data);
+            // Find source nodes for both connections
+            const vendedorNode = vendedorConn ? this.nodes.find(node => 
+                node.outputs.some(output => output.id === vendedorConn.source)
+            ) : null;
+            
+            const compradorNode = compradorConn ? this.nodes.find(node => 
+                node.outputs.some(output => output.id === compradorConn.source)
+            ) : null;
+            
+            // Update textarea
+            const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
+            const textarea = nodeEl.querySelector('.node-textarea');
+            if (textarea) {
+                const vendedorName = vendedorNode?.data?.name || 'Unnamed Vendedor';
+                const compradorName = compradorNode?.data?.name || 'Unnamed Comprador';
                 
-                if (sourceNodes.length > 0) {
-                    // Find the textarea in the output node
-                    const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
-                    const textarea = nodeEl.querySelector('.node-textarea');
-                    if (textarea) {
-                        // Collect all names
-                        const names = sourceNodes
-                            .map(node => node.data.name)
-                            .filter(name => name) // Filter out empty names
-                            .join(', ');
-                        
-                        const fromText = names || 'Unnamed';
-                        textarea.value = `From: ${fromText}\n\nContrato de compraventa entre Juan Perez y Tito Fuentes`;
-                    }
-                }
+                textarea.value = `Contrato de compraventa: 
+                El vendedor,  ${vendedorName} \n
+                le vende al comprador: ${compradorName}`;
             }
         }
     }
