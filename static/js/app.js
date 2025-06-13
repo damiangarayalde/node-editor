@@ -708,6 +708,54 @@ class NodeEditor extends EventEmitter {
     }
     
     // Add this method to NodeEditor class
+    deleteNode(nodeId) {
+        // Find the node to be deleted
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+        
+        // Find all connections related to this node's inputs and outputs
+        const relatedConnections = this.connections.filter(conn => {
+            // Check both node's inputs and outputs
+            return node.inputs.some(input => input.id === conn.target) ||
+                   node.outputs.some(output => output.id === conn.source);
+        });
+        
+        // Remove all related connections
+        relatedConnections.forEach(conn => {
+            const index = this.connections.findIndex(c => 
+                c.source === conn.source && c.target === conn.target
+            );
+            if (index > -1) {
+                this.connections.splice(index, 1);
+            }
+        });
+        
+        // Remove node from array
+        const nodeIndex = this.nodes.findIndex(n => n.id === nodeId);
+        if (nodeIndex > -1) {
+            this.nodes.splice(nodeIndex, 1);
+        }
+        
+        // Remove node element from DOM
+        const nodeEl = document.querySelector(`[data-node-id="${nodeId}"]`);
+        if (nodeEl) {
+            nodeEl.remove();
+        }
+        
+        // Update connections visualization
+        this.updateConnections();
+        
+        // Update any connected output nodes
+        this.nodes
+            .filter(n => n.type === 'Outputs')
+            .forEach(outputNode => {
+                outputNode.inputs.forEach(input => {
+                    this.updateOutputText(input.id);
+                });
+            });
+    }
+
+    // Update the showDeleteConfirmation method to call deleteNode
     showDeleteConfirmation(node, onConfirm) {
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
@@ -725,7 +773,7 @@ class NodeEditor extends EventEmitter {
         confirmBtn.className = 'modal-button confirm';
         confirmBtn.textContent = 'Delete';
         confirmBtn.onclick = () => {
-            onConfirm();
+            this.deleteNode(node.id); // Call deleteNode directly
             document.body.removeChild(overlay);
         };
         
