@@ -579,7 +579,7 @@ class NodeEditor extends EventEmitter {
     }
     
     addConnection(sourceId, targetId) {
-        // Check if connection already exists
+        // Check if this exact connection already exists
         const exists = this.connections.some(
             conn => conn.source === sourceId && conn.target === targetId
         );
@@ -596,9 +596,8 @@ class NodeEditor extends EventEmitter {
             });
             
             this.updateConnections();
-            this.updateOutputText(targetId); // Add this line
+            this.updateOutputText(targetId);
             
-            // Emit event
             this.emit('connectionCreated', { sourceId, targetId });
         }
    }
@@ -702,33 +701,40 @@ class NodeEditor extends EventEmitter {
 
     // Step 1: Get input fields from connected nodes
     getInputFields(outputNode) {
-        const fields = {};
+        const fields = {
+            vendedor: [],
+            comprador: []
+        };
         
-        // Get Vendedor fields
-        const vendedorConn = this.connections.find(conn => 
+        // Get all Vendedor connections
+        const vendedorConnections = this.connections.filter(conn => 
             conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
         );
-        if (vendedorConn) {
-            const vendedorNode = this.nodes.find(node => 
-                node.outputs.some(output => output.id === vendedorConn.source)
-            );
-            if (vendedorNode?.data) {
-                fields.vendedor = vendedorNode.data;
-            }
-        }
         
-        // Get Comprador fields
-        const compradorConn = this.connections.find(conn => 
+        // Get all Comprador connections
+        const compradorConnections = this.connections.filter(conn => 
             conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
         );
-        if (compradorConn) {
+        
+        // Process Vendedor connections
+        vendedorConnections.forEach(conn => {
+            const vendedorNode = this.nodes.find(node => 
+                node.outputs.some(output => output.id === conn.source)
+            );
+            if (vendedorNode?.data) {
+                fields.vendedor.push(vendedorNode.data);
+            }
+        });
+        
+        // Process Comprador connections
+        compradorConnections.forEach(conn => {
             const compradorNode = this.nodes.find(node => 
-                node.outputs.some(output => output.id === compradorConn.source)
+                node.outputs.some(output => output.id === conn.source)
             );
             if (compradorNode?.data) {
-                fields.comprador = compradorNode.data;
+                fields.comprador.push(compradorNode.data);
             }
-        }
+        });
         
         return fields;
     }
@@ -737,28 +743,33 @@ class NodeEditor extends EventEmitter {
     getTemplateText() {
         return `Contrato de compraventa:
 
-El vendedor, {{vendedor.name}} {{vendedor.surname}}, 
-con DNI {{vendedor.dni}}, 
-domiciliado en {{vendedor.address}},
+VENDEDORES:
+{{#each vendedor}}
+- {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
+{{/each}}
 
-le vende al comprador: {{comprador.name}} {{comprador.surname}},
-con DNI {{comprador.dni}}, 
-domiciliado en {{comprador.address}}`;
+COMPRADORES:
+{{#each comprador}}
+- {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
+{{/each}}`;
     }
 
     // Step 3: Replace placeholders with actual values
     replaceFieldValues(template, fields) {
         let text = template;
         
-        // Function to get nested object value by path (e.g., "vendedor.name")
-        const getNestedValue = (obj, path) => {
-            return path.split('.').reduce((acc, part) => acc?.[part], obj) || 'No disponible';
-        };
-        
-        // Replace all placeholders
-        text = text.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
-            const value = getNestedValue(fields, path);
-            return `<span class="highlight">${value}</span>`;
+        // Handle each loops
+        text = text.replace(/\{\{#each ([^}]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, path, template) => {
+            const array = path.split('.').reduce((acc, part) => acc?.[part], fields) || [];
+            return array.map(item => {
+                let result = template;
+                // Replace individual fields
+                result = result.replace(/\{\{this\.([^}]+)\}\}/g, (m, field) => {
+                    const value = item[field] || 'No disponible';
+                    return `<span class="highlight">${value}</span>`;
+                });
+                return result;
+            }).join('\n');
         });
         
         return text;
