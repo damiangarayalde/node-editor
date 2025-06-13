@@ -143,7 +143,7 @@ class NodeEditor extends EventEmitter {
             width: 250,
             height: type === 'Outputs' ? 150 : 100,
             type: type,
-            title: `${type} ${nodeId}`,
+            title: type === 'Inputs' || type === 'InputRaw' ? 'Empty' : `${type} ${nodeId}`,
             inputs: type === 'Outputs' ? [
                 { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
@@ -281,6 +281,9 @@ class NodeEditor extends EventEmitter {
                         node.data = node.data || {};
                         node.data[field.key] = e.target.value;
                         console.log('Updated node data:', node.data);
+                        
+                        // Update the node title when data changes
+                        this.updateNodeTitle(node);
                     });
                     
                     fieldContainer.appendChild(label);
@@ -902,10 +905,8 @@ COMPRADORES:
             nodeEl.remove();
         }
         
-        // Update connections visualization
         this.updateConnections();
         
-        // Update any connected output nodes
         this.nodes
             .filter(n => n.type === 'Outputs')
             .forEach(outputNode => {
@@ -915,7 +916,6 @@ COMPRADORES:
             });
     }
 
-    // Update the showDeleteConfirmation method to call deleteNode
     showDeleteConfirmation(node, onConfirm) {
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
@@ -952,9 +952,8 @@ COMPRADORES:
         document.body.appendChild(overlay);
     }
 
-    // Add new method to handle connection deletion
     deleteConnection(connection) {
-        // Remove from connections array
+
         const index = this.connections.findIndex(conn => 
             conn.source === connection.source && conn.target === connection.target
         );
@@ -962,7 +961,6 @@ COMPRADORES:
         if (index > -1) {
             this.connections.splice(index, 1);
             
-            // Remove 'connected' class from connectors
             document.querySelectorAll(
                 `[data-connector-id="${connection.source}"], [data-connector-id="${connection.target}"]`
             ).forEach(el => el.classList.remove('connected'));
@@ -970,13 +968,32 @@ COMPRADORES:
             // Clear selection
             this.selectedConnection = null;
             
-            // Remove automatic text update
-            // if (outputNode) {
-            //     this.updateOutputText(connection.target).catch(console.error);
-            // }
-            
             // Redraw all connections
             this.updateConnections();
+        }
+    }
+
+    // Add this to the NodeEditor class in app.js
+    updateNodeTitle(node) {
+        if ((node.type === 'Inputs' || node.type === 'InputRaw') && node.data) {
+            const { name, surname, dni } = node.data;
+            if (name || surname || dni) {
+                node.title = `${(surname || '').toUpperCase()} ${(name || '').toLowerCase()} - ${dni || ''}`.trim();
+                // Update the node's title in the DOM
+                const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+                if (nodeEl) {
+                    const titleEl = nodeEl.querySelector('.node-header span');
+                    if (titleEl) {
+                        titleEl.textContent = node.title;
+                    }
+                }
+            } else {
+                node.title = 'Empty';
+            }
+        } else if (node.type === 'Outputs') {
+            node.title = `Output ${node.id}`;
+        } else {
+            node.title = `${node.type} ${node.id}`;
         }
     }
 }
@@ -986,4 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing editor...');
     window.nodeEditor = new NodeEditor();
     console.log('Editor initialized');
-});
+}
+
+);
+
