@@ -88,6 +88,9 @@ body, html {
     font-weight: 500;
     cursor: move;
     user-select: none;
+    display: flex;           /* Add this */
+    justify-content: space-between; /* Add this */
+    align-items: center;     /* Add this */
 }
 
 .node-content {
@@ -364,4 +367,21 @@ body, html {
 /* Adjust node size for Input type */
 .node[data-node-type="Inputs"] {
     min-width: 250px;
+}
+
+/* Add these new styles */
+.delete-node-btn {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.delete-node-btn:hover {
+    color: #fc8181;
 }

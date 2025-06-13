@@ -156,10 +156,24 @@ class NodeEditor extends EventEmitter {
             e.preventDefault(); // Prevent default drag behavior
         });
         
-        // Node header
+        // Node header with title and delete button
         const header = document.createElement('div');
         header.className = 'node-header';
-        header.textContent = node.title;
+        
+        const title = document.createElement('span');
+        title.textContent = node.title;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-node-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'Delete node';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevent dragging when clicking delete
+            this.deleteNode(node.id);
+        };
+        
+        header.appendChild(title);
+        header.appendChild(deleteBtn);
         
         // Node content
         const content = document.createElement('div');
