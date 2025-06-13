@@ -755,7 +755,6 @@ class NodeEditor extends EventEmitter {
                 return data.template;
             } else {
                 console.error('Error generating template:', data.message);
-                // Return fallback template if API call fails
                 return this.getFallbackTemplate();
             }
         } catch (error) {
@@ -783,7 +782,7 @@ COMPRADORES:
     replaceFieldValues(template, fields) {
         let text = template;
         
-        // Handle each loops
+        // Handle each loops for multiple parties
         text = text.replace(/\{\{#each ([^}]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, path, template) => {
             const array = path.split('.').reduce((acc, part) => acc?.[part], fields) || [];
             return array.map(item => {
@@ -811,24 +810,29 @@ COMPRADORES:
             const textarea = nodeEl.querySelector('.node-textarea');
             
             if (textarea) {
-                // Step 1: Get input fields
-                const fields = this.getInputFields(outputNode);
-                
-                // Step 2: Get template (now async)
-                const template = await this.getTemplateText(fields);
-                
-                // Step 3: Replace values
-                const finalText = this.replaceFieldValues(template, fields);
-                
-                // Create a div instead of using textarea
-                const textDiv = document.createElement('div');
-                textDiv.className = 'node-textarea';
-                textDiv.contentEditable = true;
-                textDiv.style.whiteSpace = 'pre-wrap';
-                textDiv.innerHTML = finalText;
-                
-                // Replace textarea with div
-                textarea.parentNode.replaceChild(textDiv, textarea);
+                try {
+                    // Get the fields
+                    const fields = this.getInputFields(outputNode);
+                    
+                    // Get the LLM-generated template
+                    const template = await this.getTemplateText(fields);
+                    
+                    // Replace the values
+                    const finalText = this.replaceFieldValues(template, fields);
+                    
+                    // Create the output div
+                    const textDiv = document.createElement('div');
+                    textDiv.className = 'node-textarea';
+                    textDiv.contentEditable = true;
+                    textDiv.style.whiteSpace = 'pre-wrap';
+                    textDiv.innerHTML = finalText;
+                    
+                    // Replace the old textarea
+                    textarea.parentNode.replaceChild(textDiv, textarea);
+                    
+                } catch (error) {
+                    console.error('Error updating output text:', error);
+                }
             }
         }
     }

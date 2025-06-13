@@ -3,60 +3,71 @@ from flask_cors import CORS
 import os
 import openai
 
-app = Flask(__name__, 
+app = Flask(__name__,
             static_folder=os.path.abspath('static'),
             template_folder=os.path.abspath('templates'))
 CORS(app)
 
 # Configure OpenAI
-openai.api_key = os.getenv('OPENAI_API_KEY')  # Add this to your environment variables
+# Add this to your environment variables
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
 
 @app.route('/api/generate-template', methods=['POST'])
 def generate_template():
     try:
         data = request.get_json()
         fields = data.get('fields', {})
-        
-        # Construct the prompt for OpenAI
+
+        # Construct the prompt for OpenAI with explicit formatting instructions
         prompt = f"""
-Generate a legal contract template in Spanish for a sale agreement.
-Use the following placeholders for dynamic content:
+                    Generate a legal contract template in portuguese for a sale agreement.
+                    Use EXACTLY these placeholders for dynamic content:
 
-Vendedores (can be multiple):
-{{{{#each vendedor}}}}
-- Name: {{{{this.name}}}}
-- Surname: {{{{this.surname}}}}
-- DNI: {{{{this.dni}}}}
-- Address: {{{{this.address}}}}
-{{{{/each}}}}
+                    For vendors:
+                    {{{{#each vendedor}}}}
+                    - Name: {{{{this.name}}}}
+                    - Surname: {{{{this.surname}}}}
+                    - DNI: {{{{this.dni}}}}
+                    - Address: {{{{this.address}}}}
+                    {{{{/each}}}}
 
-Compradores (can be multiple):
-{{{{#each comprador}}}}
-- Name: {{{{this.name}}}}
-- Surname: {{{{this.surname}}}}
-- DNI: {{{{this.dni}}}}
-- Address: {{{{this.address}}}}
-{{{{/each}}}}
+                    For buyers:
+                    {{{{#each comprador}}}}
+                    - Name: {{{{this.name}}}}
+                    - Surname: {{{{this.surname}}}}
+                    - DNI: {{{{this.dni}}}}
+                    - Address: {{{{this.address}}}}
+                    {{{{/each}}}}
 
-Generate a formal contract template that uses these placeholders and includes standard legal clauses for a sale agreement.
-"""
-        
+                    Important:
+                    1. Keep all placeholder syntax exactly as shown above
+                    2. Generate a formal Spanish legal contract
+                    3. Include standard legal clauses for a sale agreement
+                    4. Ensure proper formatting and structure
+                    5. Use proper legal terminology in Spanish
+                    """
+
         # Call OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a legal document assistant that generates contract templates with placeholders."},
+                {
+                    "role": "system",
+                    "content": "You are a legal document assistant that generates contract templates. Always maintain the exact placeholder syntax provided."
+                },
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            temperature=0.7  # Add some creativity while maintaining professional tone
         )
-        
+
         template = response.choices[0].message.content
-        
+
         return jsonify({
             'status': 'success',
             'template': template
         })
-        
+
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -64,13 +75,17 @@ Generate a formal contract template that uses these placeholders and includes st
         }), 500
 
 # Serve static files from the root
+
+
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/api/nodes', methods=['GET', 'POST'])
 def handle_nodes():
@@ -79,9 +94,9 @@ def handle_nodes():
         return jsonify({
             'nodes': [
                 {
-                    'id': 1, 
-                    'x': 100, 
-                    'y': 100, 
+                    'id': 1,
+                    'x': 100,
+                    'y': 100,
                     'width': 250,
                     'height': 100,
                     'type': 'Inputs',
@@ -97,9 +112,9 @@ def handle_nodes():
                     }
                 },
                 {
-                    'id': 2, 
-                    'x': 400, 
-                    'y': 100, 
+                    'id': 2,
+                    'x': 400,
+                    'y': 100,
                     'width': 200,
                     'height': 100,
                     'type': 'Outputs',  # Changed from 'default' to 'Outputs'
@@ -120,10 +135,11 @@ def handle_nodes():
         print("Received connections:", data.get('connections', []))
         return jsonify({'status': 'success'})
 
+
 if __name__ == '__main__':
     # Ensure the static and template folders exist
     os.makedirs('static', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
-    
+
     # Run the app
     app.run(host='0.0.0.0', port=5001, debug=True)
