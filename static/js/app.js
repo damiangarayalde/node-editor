@@ -59,6 +59,7 @@ class NodeEditor extends EventEmitter {
         this.offsetX = 0;
         this.offsetY = 0;
         this.nextNodeId = 1;
+        this.selectedConnection = null; // Add this line
         
         this.init();
     }
@@ -109,6 +110,19 @@ class NodeEditor extends EventEmitter {
         // Prevent default drag behavior
         this.editor.addEventListener('dragover', (e) => e.preventDefault());
         this.editor.addEventListener('drop', (e) => e.preventDefault());
+        
+        // Add click handler to editor for deselecting connections
+        this.editor.addEventListener('click', (e) => {
+            if (e.target === this.editor || e.target === this.connectionsSvg) {
+                if (this.selectedConnection) {
+                    const path = document.querySelector(`[data-connection-id="${this.selectedConnection.id}"]`);
+                    if (path) {
+                        path.classList.remove('selected');
+                    }
+                    this.selectedConnection = null;
+                }
+            }
+        });
     }
 
     // Update the addNode method to include default JSON data
@@ -614,7 +628,23 @@ class NodeEditor extends EventEmitter {
                 path.classList.add('connection');
                 path.dataset.connectionId = conn.id;
                 
-                // Add connection to SVG
+                // Add click handler for selection
+                path.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Deselect previously selected connection
+                    if (this.selectedConnection) {
+                        const prevPath = document.querySelector(`[data-connection-id="${this.selectedConnection.id}"]`);
+                        if (prevPath) {
+                            prevPath.classList.remove('selected');
+                        }
+                    }
+                    
+                    // Select this connection
+                    this.selectedConnection = conn;
+                    path.classList.add('selected');
+                });
+                
                 this.connectionsSvg.appendChild(path);
             }
         });
