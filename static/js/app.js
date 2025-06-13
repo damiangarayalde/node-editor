@@ -311,7 +311,7 @@ class NodeEditor extends EventEmitter {
                 <span>${input.name}</span>
             `;
             
-            // Add click handler for input connector
+            // Add click handler to input connector
             const connectorEl = inputEl.querySelector('.connector');
             connectorEl.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
@@ -700,45 +700,96 @@ class NodeEditor extends EventEmitter {
         }
     }
 
-    // Add this method to NodeEditor class
+    // Step 1: Get input fields from connected nodes
+    getInputFields(outputNode) {
+        const fields = {};
+        
+        // Get Vendedor fields
+        const vendedorConn = this.connections.find(conn => 
+            conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
+        );
+        if (vendedorConn) {
+            const vendedorNode = this.nodes.find(node => 
+                node.outputs.some(output => output.id === vendedorConn.source)
+            );
+            if (vendedorNode?.data) {
+                fields.vendedor = vendedorNode.data;
+            }
+        }
+        
+        // Get Comprador fields
+        const compradorConn = this.connections.find(conn => 
+            conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
+        );
+        if (compradorConn) {
+            const compradorNode = this.nodes.find(node => 
+                node.outputs.some(output => output.id === compradorConn.source)
+            );
+            if (compradorNode?.data) {
+                fields.comprador = compradorNode.data;
+            }
+        }
+        
+        return fields;
+    }
+
+    // Step 2: Get template text with placeholders
+    getTemplateText() {
+        return `Contrato de compraventa:
+
+El vendedor, {{vendedor.name}} {{vendedor.surname}}, 
+con DNI {{vendedor.dni}}, 
+domiciliado en {{vendedor.address}},
+
+le vende al comprador: {{comprador.name}} {{comprador.surname}},
+con DNI {{comprador.dni}}, 
+domiciliado en {{comprador.address}}`;
+    }
+
+    // Step 3: Replace placeholders with actual values
+    replaceFieldValues(template, fields) {
+        let text = template;
+        
+        // Function to get nested object value by path (e.g., "vendedor.name")
+        const getNestedValue = (obj, path) => {
+            return path.split('.').reduce((acc, part) => acc?.[part], obj) || 'No disponible';
+        };
+        
+        // Replace all placeholders
+        text = text.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+            const value = getNestedValue(fields, path);
+            return `<span class="highlight">${value}</span>`;
+        });
+        
+        return text;
+    }
+
+    // Update the existing updateOutputText method to use the new methods
     updateOutputText(targetId) {
         const outputNode = this.nodes.find(node => {
             return node.type === 'Outputs' && node.inputs.some(input => input.id === targetId);
         });
         
         if (outputNode) {
-            const vendedorConn = this.connections.find(conn => 
-                conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
-            );
-            const compradorConn = this.connections.find(conn => 
-                conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
-            );
-            
-            const vendedorNode = vendedorConn ? this.nodes.find(node => 
-                node.outputs.some(output => output.id === vendedorConn.source)
-            ) : null;
-            
-            const compradorNode = compradorConn ? this.nodes.find(node => 
-                node.outputs.some(output => output.id === compradorConn.source)
-            ) : null;
-            
             const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
             const textarea = nodeEl.querySelector('.node-textarea');
             
             if (textarea) {
-                const vendedorName = vendedorNode?.data?.name || 'Unnamed Vendedor';
-                const compradorName = compradorNode?.data?.name || 'Unnamed Comprador';
+                // Step 1: Get input fields
+                const fields = this.getInputFields(outputNode);
+                
+                // Step 2: Get template
+                const template = this.getTemplateText();
+                
+                // Step 3: Replace values
+                const finalText = this.replaceFieldValues(template, fields);
                 
                 // Create a div instead of using textarea
                 const textDiv = document.createElement('div');
                 textDiv.className = 'node-textarea';
                 textDiv.contentEditable = true;
                 textDiv.style.whiteSpace = 'pre-wrap';
-                
-                // Format text with highlighted values
-                textDiv.innerHTML = `Contrato de compraventa:\n
-El vendedor, <span class="highlight">${vendedorName}</span>\n
-le vende al comprador: <span class="highlight">${compradorName}</span>`;
+                textDiv.innerHTML = finalText;
                 
                 // Replace textarea with div
                 textarea.parentNode.replaceChild(textDiv, textarea);
