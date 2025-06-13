@@ -210,13 +210,32 @@ class NodeEditor extends EventEmitter {
             textContainer.style.position = 'relative';
             textContainer.style.margin = '8px';
             
+            // Add header with update button
+            const textHeader = document.createElement('div');
+            textHeader.style.display = 'flex';
+            textHeader.style.justifyContent = 'flex-end';
+            textHeader.style.marginBottom = '4px';
+            
+            const updateBtn = document.createElement('button');
+            updateBtn.className = 'update-btn';
+            updateBtn.innerHTML = '🔄';
+            updateBtn.title = 'Update text';
+            updateBtn.onclick = (e) => {
+                e.stopPropagation();
+                // Update text only when clicked
+                this.updateOutputText(node.inputs[0].id).catch(console.error);
+            };
+            
+            textHeader.appendChild(updateBtn);
+            textContainer.appendChild(textHeader);
+            
             const textDiv = document.createElement('div');
             textDiv.className = 'node-textarea';
             textDiv.contentEditable = true;
             textDiv.style.whiteSpace = 'pre-wrap';
             
             // Set default content
-            textDiv.innerHTML = 'Contrato de compraventa entre Juan Perez y Tito Fuentes';
+            textDiv.innerHTML = 'Click update button to generate text';
             
             textContainer.appendChild(textDiv);
             content.appendChild(textContainer);
@@ -596,7 +615,8 @@ class NodeEditor extends EventEmitter {
             });
             
             this.updateConnections();
-            this.updateOutputText(targetId).catch(console.error);
+            // Remove automatic text update
+            // this.updateOutputText(targetId).catch(console.error);
             
             this.emit('connectionCreated', { sourceId, targetId });
         }
@@ -940,15 +960,10 @@ COMPRADORES:
             // Clear selection
             this.selectedConnection = null;
             
-            // Update output text if it was connected to an output node
-            const outputNode = this.nodes.find(node => 
-                node.type === 'Outputs' && 
-                node.inputs.some(input => input.id === connection.target)
-            );
-            
-            if (outputNode) {
-                this.updateOutputText(connection.target).catch(console.error);
-            }
+            // Remove automatic text update
+            // if (outputNode) {
+            //     this.updateOutputText(connection.target).catch(console.error);
+            // }
             
             // Redraw all connections
             this.updateConnections();
