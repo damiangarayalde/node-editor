@@ -123,6 +123,14 @@ class NodeEditor extends EventEmitter {
                 }
             }
         });
+        
+        // Add keyboard event listener for deleting connections
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedConnection) {
+                e.preventDefault(); // Prevent browser back navigation on backspace
+                this.deleteConnection(this.selectedConnection);
+            }
+        });
     }
 
     // Update the addNode method to include default JSON data
@@ -820,6 +828,39 @@ class NodeEditor extends EventEmitter {
         content.appendChild(buttons);
         overlay.appendChild(content);
         document.body.appendChild(overlay);
+    }
+
+    // Add new method to handle connection deletion
+    deleteConnection(connection) {
+        // Remove from connections array
+        const index = this.connections.findIndex(conn => 
+            conn.source === connection.source && conn.target === connection.target
+        );
+        
+        if (index > -1) {
+            this.connections.splice(index, 1);
+            
+            // Remove 'connected' class from connectors
+            document.querySelectorAll(
+                `[data-connector-id="${connection.source}"], [data-connector-id="${connection.target}"]`
+            ).forEach(el => el.classList.remove('connected'));
+            
+            // Clear selection
+            this.selectedConnection = null;
+            
+            // Update output text if it was connected to an output node
+            const outputNode = this.nodes.find(node => 
+                node.type === 'Outputs' && 
+                node.inputs.some(input => input.id === connection.target)
+            );
+            
+            if (outputNode) {
+                this.updateOutputText(connection.target);
+            }
+            
+            // Redraw all connections
+            this.updateConnections();
+        }
     }
 }
 
