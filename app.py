@@ -1,11 +1,67 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
+import openai
 
 app = Flask(__name__, 
             static_folder=os.path.abspath('static'),
             template_folder=os.path.abspath('templates'))
 CORS(app)
+
+# Configure OpenAI
+openai.api_key = os.getenv('OPENAI_API_KEY')  # Add this to your environment variables
+
+@app.route('/api/generate-template', methods=['POST'])
+def generate_template():
+    try:
+        data = request.get_json()
+        fields = data.get('fields', {})
+        
+        # Construct the prompt for OpenAI
+        prompt = f"""
+Generate a legal contract template in Spanish for a sale agreement.
+Use the following placeholders for dynamic content:
+
+Vendedores (can be multiple):
+{{{{#each vendedor}}}}
+- Name: {{{{this.name}}}}
+- Surname: {{{{this.surname}}}}
+- DNI: {{{{this.dni}}}}
+- Address: {{{{this.address}}}}
+{{{{/each}}}}
+
+Compradores (can be multiple):
+{{{{#each comprador}}}}
+- Name: {{{{this.name}}}}
+- Surname: {{{{this.surname}}}}
+- DNI: {{{{this.dni}}}}
+- Address: {{{{this.address}}}}
+{{{{/each}}}}
+
+Generate a formal contract template that uses these placeholders and includes standard legal clauses for a sale agreement.
+"""
+        
+        # Call OpenAI API
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a legal document assistant that generates contract templates with placeholders."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        template = response.choices[0].message.content
+        
+        return jsonify({
+            'status': 'success',
+            'template': template
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 # Serve static files from the root
 @app.route('/static/<path:path>')

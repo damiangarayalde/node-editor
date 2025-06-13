@@ -596,7 +596,7 @@ class NodeEditor extends EventEmitter {
             });
             
             this.updateConnections();
-            this.updateOutputText(targetId);
+            this.updateOutputText(targetId).catch(console.error);
             
             this.emit('connectionCreated', { sourceId, targetId });
         }
@@ -739,8 +739,33 @@ class NodeEditor extends EventEmitter {
         return fields;
     }
 
-    // Step 2: Get template text with placeholders
-    getTemplateText() {
+    // Update getTemplateText to be async
+    async getTemplateText(fields) {
+        try {
+            const response = await fetch('/api/generate-template', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fields })
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                return data.template;
+            } else {
+                console.error('Error generating template:', data.message);
+                // Return fallback template if API call fails
+                return this.getFallbackTemplate();
+            }
+        } catch (error) {
+            console.error('Error calling template API:', error);
+            return this.getFallbackTemplate();
+        }
+    }
+
+    // Add fallback template method
+    getFallbackTemplate() {
         return `Contrato de compraventa:
 
 VENDEDORES:
@@ -776,7 +801,7 @@ COMPRADORES:
     }
 
     // Update the existing updateOutputText method to use the new methods
-    updateOutputText(targetId) {
+    async updateOutputText(targetId) {
         const outputNode = this.nodes.find(node => {
             return node.type === 'Outputs' && node.inputs.some(input => input.id === targetId);
         });
@@ -789,8 +814,8 @@ COMPRADORES:
                 // Step 1: Get input fields
                 const fields = this.getInputFields(outputNode);
                 
-                // Step 2: Get template
-                const template = this.getTemplateText();
+                // Step 2: Get template (now async)
+                const template = await this.getTemplateText(fields);
                 
                 // Step 3: Replace values
                 const finalText = this.replaceFieldValues(template, fields);
@@ -918,7 +943,7 @@ COMPRADORES:
             );
             
             if (outputNode) {
-                this.updateOutputText(connection.target);
+                this.updateOutputText(connection.target).catch(console.error);
             }
             
             // Redraw all connections
