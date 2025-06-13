@@ -1,16 +1,19 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
-import openai
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__,
             static_folder=os.path.abspath('static'),
             template_folder=os.path.abspath('templates'))
 CORS(app)
 
-# Configure OpenAI
-# Add this to your environment variables
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Configure OpenAI with new client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 
 @app.route('/api/generate-template', methods=['POST'])
@@ -18,9 +21,9 @@ def generate_template():
     try:
         data = request.get_json()
         fields = data.get('fields', {})
-        
+
         print("Received fields:", fields)  # Debug log
-        
+
         # Construct the prompt for OpenAI
         prompt = f"""
                     Generate a legal contract template in portuguese for a sale agreement.
@@ -49,12 +52,12 @@ def generate_template():
                     4. Ensure proper formatting and structure
                     5. Use proper legal terminology in Spanish
                     """
-        
-        print("Using OpenAI key:", bool(openai.api_key))  # Debug if key exists
-        
+
+        print("Using OpenAI key:", bool(client.api_key))  # Debug if key exists
+
         try:
-            # Call OpenAI API
-            response = openai.ChatCompletion.create(
+            # Call OpenAI API with new syntax
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
@@ -65,17 +68,18 @@ def generate_template():
                 ],
                 temperature=0.7
             )
-            
+
             template = response.choices[0].message.content
             print("Generated template successfully")  # Debug log
-            
+
             return jsonify({
                 'status': 'success',
                 'template': template
             })
-            
-        except openai.error.OpenAIError as e:
-            print(f"OpenAI API error: {str(e)}")  # Debug OpenAI specific errors
+
+        except Exception as e:
+            # Debug OpenAI specific errors
+            print(f"OpenAI API error: {str(e)}")
             return jsonify({
                 'status': 'error',
                 'message': f"OpenAI API error: {str(e)}"
@@ -149,10 +153,11 @@ def handle_nodes():
         print("Received connections:", data.get('connections', []))
         return jsonify({'status': 'success'})
 
+
 @app.route('/api/test-openai', methods=['GET'])
 def test_openai():
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "user", "content": "Say 'OpenAI is working!'"}

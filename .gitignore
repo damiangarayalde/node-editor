@@ -9,6 +9,11 @@ pnpm-debug.log*
 .env
 .env.*
 
+# Python dependencies
+venv/
+__pycache__/
+*.pyc
+
 # Build output
 dist/
 build/
