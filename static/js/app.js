@@ -168,8 +168,10 @@ class NodeEditor extends EventEmitter {
         deleteBtn.innerHTML = '🗑️';
         deleteBtn.title = 'Delete node';
         deleteBtn.onclick = (e) => {
-            e.stopPropagation(); // Prevent dragging when clicking delete
-            this.deleteNode(node.id);
+            e.stopPropagation();
+            this.showDeleteConfirmation(node, () => {
+                this.deleteNode(node.id);
+            });
         };
         
         header.appendChild(title);
@@ -703,6 +705,43 @@ class NodeEditor extends EventEmitter {
                 le vende al comprador: ${compradorName}`;
             }
         }
+    }
+    
+    // Add this method to NodeEditor class
+    showDeleteConfirmation(node, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        
+        const message = document.createElement('p');
+        message.textContent = `Are you sure you want to delete ${node.title}?`;
+        
+        const buttons = document.createElement('div');
+        buttons.className = 'modal-buttons';
+        
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'modal-button confirm';
+        confirmBtn.textContent = 'Delete';
+        confirmBtn.onclick = () => {
+            onConfirm();
+            document.body.removeChild(overlay);
+        };
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'modal-button cancel';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = () => {
+            document.body.removeChild(overlay);
+        };
+        
+        buttons.appendChild(cancelBtn);
+        buttons.appendChild(confirmBtn);
+        content.appendChild(message);
+        content.appendChild(buttons);
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
     }
 }
 
