@@ -210,27 +210,21 @@ class NodeEditor extends EventEmitter {
             textContainer.style.position = 'relative';
             textContainer.style.margin = '8px';
             
-            const textarea = document.createElement('textarea');
-            textarea.className = 'node-textarea';
+            const textDiv = document.createElement('div');
+            textDiv.className = 'node-textarea';
+            textDiv.contentEditable = true;
+            textDiv.style.whiteSpace = 'pre-wrap';
             
-            // Check if this output has a connection
-            const connection = this.connections.find(conn => 
-                node.inputs.some(input => input.id === conn.target)
-            );
+            // Set default content
+            textDiv.innerHTML = 'Contrato de compraventa entre Juan Perez y Tito Fuentes';
             
-            textarea.value = connection ? 
-                '' : // Will be updated by updateOutputText if connected
-                'Contrato de compraventa entre Juan Perez y Tito Fuentes';
-                
-            textarea.style.resize = 'both';
-            textarea.style.minHeight = '100px';
-            textarea.style.width = '100%';
-            
-            textContainer.appendChild(textarea);
+            textContainer.appendChild(textDiv);
             content.appendChild(textContainer);
             
             // Update text if there's a connection
-            if (connection) {
+            if (this.connections.some(conn => 
+                node.inputs.some(input => input.id === conn.target)
+            )) {
                 this.updateOutputText(node.inputs[0].id);
             }
         }
@@ -708,13 +702,11 @@ class NodeEditor extends EventEmitter {
 
     // Add this method to NodeEditor class
     updateOutputText(targetId) {
-        // Find the output node element
         const outputNode = this.nodes.find(node => {
             return node.type === 'Outputs' && node.inputs.some(input => input.id === targetId);
         });
         
         if (outputNode) {
-            // Get connections for both inputs
             const vendedorConn = this.connections.find(conn => 
                 conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
             );
@@ -722,7 +714,6 @@ class NodeEditor extends EventEmitter {
                 conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
             );
             
-            // Find source nodes for both connections
             const vendedorNode = vendedorConn ? this.nodes.find(node => 
                 node.outputs.some(output => output.id === vendedorConn.source)
             ) : null;
@@ -731,16 +722,26 @@ class NodeEditor extends EventEmitter {
                 node.outputs.some(output => output.id === compradorConn.source)
             ) : null;
             
-            // Update textarea
             const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
             const textarea = nodeEl.querySelector('.node-textarea');
+            
             if (textarea) {
                 const vendedorName = vendedorNode?.data?.name || 'Unnamed Vendedor';
                 const compradorName = compradorNode?.data?.name || 'Unnamed Comprador';
                 
-                textarea.value = `Contrato de compraventa: 
-                El vendedor,  ${vendedorName} \n
-                le vende al comprador: ${compradorName}`;
+                // Create a div instead of using textarea
+                const textDiv = document.createElement('div');
+                textDiv.className = 'node-textarea';
+                textDiv.contentEditable = true;
+                textDiv.style.whiteSpace = 'pre-wrap';
+                
+                // Format text with highlighted values
+                textDiv.innerHTML = `Contrato de compraventa:\n
+El vendedor, <span class="highlight">${vendedorName}</span>\n
+le vende al comprador: <span class="highlight">${compradorName}</span>`;
+                
+                // Replace textarea with div
+                textarea.parentNode.replaceChild(textDiv, textarea);
             }
         }
     }

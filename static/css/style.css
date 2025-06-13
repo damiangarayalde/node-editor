@@ -444,3 +444,11 @@ body, html {
 .modal-button:active {
     transform: translateY(1px);
 }
+
+/* Highlighted text in node textarea */
+.node-textarea .highlight {
+    background-color: rgba(99, 179, 237, 0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
