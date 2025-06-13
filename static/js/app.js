@@ -762,6 +762,8 @@ class NodeEditor extends EventEmitter {
     // Update getTemplateText to be async
     async getTemplateText(fields) {
         try {
+            console.log('Sending fields to API:', fields);  // Debug log
+            
             const response = await fetch('/api/generate-template', {
                 method: 'POST',
                 headers: {
@@ -771,10 +773,12 @@ class NodeEditor extends EventEmitter {
             });
             
             const data = await response.json();
+            console.log('API response:', data);  // Debug log
+            
             if (data.status === 'success') {
                 return data.template;
             } else {
-                console.error('Error generating template:', data.message);
+                console.error('Error from API:', data.message);
                 return this.getFallbackTemplate();
             }
         } catch (error) {

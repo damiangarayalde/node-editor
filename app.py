@@ -18,8 +18,10 @@ def generate_template():
     try:
         data = request.get_json()
         fields = data.get('fields', {})
-
-        # Construct the prompt for OpenAI with explicit formatting instructions
+        
+        print("Received fields:", fields)  # Debug log
+        
+        # Construct the prompt for OpenAI
         prompt = f"""
                     Generate a legal contract template in portuguese for a sale agreement.
                     Use EXACTLY these placeholders for dynamic content:
@@ -47,28 +49,40 @@ def generate_template():
                     4. Ensure proper formatting and structure
                     5. Use proper legal terminology in Spanish
                     """
-
-        # Call OpenAI API
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a legal document assistant that generates contract templates. Always maintain the exact placeholder syntax provided."
-                },
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7  # Add some creativity while maintaining professional tone
-        )
-
-        template = response.choices[0].message.content
-
-        return jsonify({
-            'status': 'success',
-            'template': template
-        })
+        
+        print("Using OpenAI key:", bool(openai.api_key))  # Debug if key exists
+        
+        try:
+            # Call OpenAI API
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a legal document assistant that generates contract templates. Always maintain the exact placeholder syntax provided."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7
+            )
+            
+            template = response.choices[0].message.content
+            print("Generated template successfully")  # Debug log
+            
+            return jsonify({
+                'status': 'success',
+                'template': template
+            })
+            
+        except openai.error.OpenAIError as e:
+            print(f"OpenAI API error: {str(e)}")  # Debug OpenAI specific errors
+            return jsonify({
+                'status': 'error',
+                'message': f"OpenAI API error: {str(e)}"
+            }), 500
 
     except Exception as e:
+        print(f"General error: {str(e)}")  # Debug general errors
         return jsonify({
             'status': 'error',
             'message': str(e)
@@ -134,6 +148,25 @@ def handle_nodes():
         print("Received nodes:", data.get('nodes', []))
         print("Received connections:", data.get('connections', []))
         return jsonify({'status': 'success'})
+
+@app.route('/api/test-openai', methods=['GET'])
+def test_openai():
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": "Say 'OpenAI is working!'"}
+            ]
+        )
+        return jsonify({
+            'status': 'success',
+            'message': response.choices[0].message.content
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 
 if __name__ == '__main__':
