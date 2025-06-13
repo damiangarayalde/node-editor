@@ -141,7 +141,7 @@ class NodeEditor extends EventEmitter {
             x,
             y,
             width: 250,
-            height: type === 'Outputs' ? 150 : 100, // Increased height for Output nodes
+            height: type === 'Outputs' ? 150 : 100,
             type: type,
             title: `${type} ${nodeId}`,
             inputs: type === 'Outputs' ? [
@@ -149,7 +149,7 @@ class NodeEditor extends EventEmitter {
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
             ] : [{ id: `in_${nodeId}`, name: 'Input' }],
             outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            data: type === 'Inputs' ? {
+            data: (type === 'Inputs' || type === 'InputRaw') ? {
                 name: '',
                 surname: '',
                 dateOfBirth: '',
@@ -163,7 +163,7 @@ class NodeEditor extends EventEmitter {
         return node;
     }
 
-    // Update the renderNode method to include JSON fields for Input nodes
+    // Update the renderNode method to handle the new node type
     renderNode(node) {
         const nodeEl = document.createElement('div');
         nodeEl.className = 'node';
@@ -249,70 +249,76 @@ class NodeEditor extends EventEmitter {
         }
         
         // Add buttons for Input type nodes
-        if (node.type === 'Inputs') {
-            // Add JSON editor before the buttons
-            const jsonEditor = document.createElement('div');
-            jsonEditor.className = 'json-editor';
-            
-            const fields = [
-                { key: 'name', label: 'Name' },
-                { key: 'surname', label: 'Surname' },
-                { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-                { key: 'dni', label: 'DNI' },
-                { key: 'address', label: 'Address' }
-            ];
+        if (node.type === 'Inputs' || node.type === 'InputRaw') {
+            // Add JSON editor for Input and InputRaw type nodes
+            if (node.type === 'Inputs' || node.type === 'InputRaw') {
+                // Add JSON editor before the buttons
+                const jsonEditor = document.createElement('div');
+                jsonEditor.className = 'json-editor';
+                
+                const fields = [
+                    { key: 'name', label: 'Name' },
+                    { key: 'surname', label: 'Surname' },
+                    { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+                    { key: 'dni', label: 'DNI' },
+                    { key: 'address', label: 'Address' }
+                ];
 
-            fields.forEach(field => {
-                const fieldContainer = document.createElement('div');
-                fieldContainer.className = 'json-field';
-                
-                const label = document.createElement('label');
-                label.textContent = field.label;
-                label.className = 'json-label';
-                
-                const input = document.createElement('input');
-                input.type = field.type || 'text';
-                input.value = node.data?.[field.key] || '';
-                input.className = 'json-input';
-                
-                input.addEventListener('change', (e) => {
-                    node.data = node.data || {};
-                    node.data[field.key] = e.target.value;
-                    console.log('Updated node data:', node.data);
+                fields.forEach(field => {
+                    const fieldContainer = document.createElement('div');
+                    fieldContainer.className = 'json-field';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = field.label;
+                    label.className = 'json-label';
+                    
+                    const input = document.createElement('input');
+                    input.type = field.type || 'text';
+                    input.value = node.data?.[field.key] || '';
+                    input.className = 'json-input';
+                    
+                    input.addEventListener('change', (e) => {
+                        node.data = node.data || {};
+                        node.data[field.key] = e.target.value;
+                        console.log('Updated node data:', node.data);
+                    });
+                    
+                    fieldContainer.appendChild(label);
+                    fieldContainer.appendChild(input);
+                    jsonEditor.appendChild(fieldContainer);
                 });
                 
-                fieldContainer.appendChild(label);
-                fieldContainer.appendChild(input);
-                jsonEditor.appendChild(fieldContainer);
-            });
-            
-            content.appendChild(jsonEditor);
+                content.appendChild(jsonEditor);
+            }
 
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'node-buttons';
-            buttonContainer.style.display = 'flex';
-            buttonContainer.style.gap = '8px';
-            buttonContainer.style.padding = '8px';
-            
-            const loadButton = document.createElement('button');
-            loadButton.textContent = 'Load';
-            loadButton.className = 'node-button';
-            loadButton.onclick = (e) => {
-                e.stopPropagation();
-                console.log('Load clicked for node:', node.id);
-            };
-            
-            const validateButton = document.createElement('button');
-            validateButton.textContent = 'Validate';
-            validateButton.className = 'node-button';
-            validateButton.onclick = (e) => {
-                e.stopPropagation();
-                console.log('Validate clicked for node:', node.id);
-            };
-            
-            buttonContainer.appendChild(loadButton);
-            buttonContainer.appendChild(validateButton);
-            content.appendChild(buttonContainer);
+            // Only add buttons for regular Inputs type
+            if (node.type === 'Inputs') {
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'node-buttons';
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.gap = '8px';
+                buttonContainer.style.padding = '8px';
+                
+                const loadButton = document.createElement('button');
+                loadButton.textContent = 'Load';
+                loadButton.className = 'node-button';
+                loadButton.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log('Load clicked for node:', node.id);
+                };
+                
+                const validateButton = document.createElement('button');
+                validateButton.textContent = 'Validate';
+                validateButton.className = 'node-button';
+                validateButton.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log('Validate clicked for node:', node.id);
+                };
+                
+                buttonContainer.appendChild(loadButton);
+                buttonContainer.appendChild(validateButton);
+                content.appendChild(buttonContainer);
+            }
         }
         
         // Inputs
