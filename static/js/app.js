@@ -219,7 +219,7 @@ class NodeEditor extends EventEmitter {
             const subtitle = document.createElement('div');
             subtitle.className = 'node-subtitle';
             subtitle.textContent = node.data?.surname && node.data?.name ? 
-                `${(node.data.surname || '').toUpperCase()}, ${this.capitalizeFirstLetter(node.data.name || '')}` : 
+                `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
                 'Empty';
             
             header.appendChild(titleContainer);
@@ -1047,6 +1047,9 @@ COMPRADORES:
         }
     }
 
+    capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    }
     // Add this to the NodeEditor class in app.js
     updateNodeTitle(node) {
         if (node.type === 'dni' && node.data) {
@@ -1068,7 +1071,7 @@ COMPRADORES:
                 const subtitle = nodeEl.querySelector('.node-subtitle');
                 if (subtitle) {
                     subtitle.textContent = node.data.surname || node.data.name ? 
-                        `${(node.data.surname || '').toUpperCase()}, ${this.capitalizeFirstLetter(node.data.name || '')}` : 
+                        `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
                         'Empty';
                 }
             }
