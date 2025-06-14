@@ -505,3 +505,41 @@ body, html {
 .collapsible-content.expanded {
     max-height: 500px; /* Adjust based on your content */
 }
+
+/* Photo capture buttons */
+.photo-capture-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    margin: 8px;
+    border-top: 1px solid #4a5568;
+}
+
+.photo-capture-btn {
+    padding: 8px;
+    background: #2d3748;
+    color: #63b3ed;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.photo-capture-btn:hover {
+    background: #374151;
+    border-color: #63b3ed;
+}
+
+.photo-capture-btn:active {
+    transform: translateY(1px);
+}
+
+.photo-capture-btn .icon {
+    font-size: 16px;
+}
