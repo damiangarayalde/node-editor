@@ -113,7 +113,7 @@ def handle_nodes():
             'nodes': [
                 {
                     'id': 1,
-                    'x': 100,
+                    'x': 200,
                     'y': 100,
                     'width': 375,  # Increased from 250
                     'height': 100,
@@ -131,7 +131,7 @@ def handle_nodes():
                 },
                 {
                     'id': 2,
-                    'x': 400,
+                    'x': 800,
                     'y': 100,
                     'width': 375,  # Increased from 200
                     'height': 100,
