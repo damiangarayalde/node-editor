@@ -182,7 +182,6 @@ class NodeEditor extends EventEmitter {
         return node;
     }
 
-    // Update the renderNode method to handle the new node type
     renderNode(node) {
         const nodeEl = document.createElement('div');
         nodeEl.className = 'node';
@@ -211,7 +210,7 @@ class NodeEditor extends EventEmitter {
             // Add icon and main title
             const icon = document.createElement('span');
             icon.innerHTML = '🪪';
-            icon.style.fontSize = '16px';
+            icon.style.fontSize = '40px';
             
             const title = document.createElement('span');
             // Add state to the title
@@ -219,18 +218,7 @@ class NodeEditor extends EventEmitter {
             
             titleMain.appendChild(icon);
             titleMain.appendChild(title);
-            
-            // Add delete button to title container
-            // const deleteBtn = document.createElement('button');
-            // deleteBtn.className = 'delete-node-btn';
-            // deleteBtn.innerHTML = '🗑️';
-            // deleteBtn.title = 'Delete node';
-            // deleteBtn.onclick = (e) => {
-            //     e.stopPropagation();
-            //     this.showDeleteConfirmation(node, () => {
-            //         this.deleteNode(node.id);
-            //     });
-            // };
+    
             
             titleContainer.appendChild(titleMain);
             //titleContainer.appendChild(deleteBtn);
