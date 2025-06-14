@@ -221,19 +221,19 @@ class NodeEditor extends EventEmitter {
             titleMain.appendChild(title);
             
             // Add delete button to title container
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-node-btn';
-            deleteBtn.innerHTML = '🗑️';
-            deleteBtn.title = 'Delete node';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.showDeleteConfirmation(node, () => {
-                    this.deleteNode(node.id);
-                });
-            };
+            // const deleteBtn = document.createElement('button');
+            // deleteBtn.className = 'delete-node-btn';
+            // deleteBtn.innerHTML = '🗑️';
+            // deleteBtn.title = 'Delete node';
+            // deleteBtn.onclick = (e) => {
+            //     e.stopPropagation();
+            //     this.showDeleteConfirmation(node, () => {
+            //         this.deleteNode(node.id);
+            //     });
+            // };
             
             titleContainer.appendChild(titleMain);
-            titleContainer.appendChild(deleteBtn);
+            //titleContainer.appendChild(deleteBtn);
             
             // Add subtitles
             const subtitle = document.createElement('div');

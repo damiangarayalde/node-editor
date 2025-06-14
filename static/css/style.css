@@ -551,3 +551,10 @@ body, html {
 .photo-capture-btn.error {
     color: #F56565;
 }
+
+/* New node subtitle styles */
+.node-subtitle {
+    color: #63b3ed;    /* Light blue color */
+    margin-top: 4px;   /* Add some spacing from the title */
+    font-weight: normal;
+}
