@@ -524,7 +524,7 @@ class NodeEditor extends EventEmitter {
         container.style.display = 'flex';
         container.style.gap = '8px';
         container.style.padding = '8px';
-        
+
         const loadButton = document.createElement('button');
         loadButton.textContent = 'Load';
         loadButton.className = 'node-button';
@@ -533,12 +533,16 @@ class NodeEditor extends EventEmitter {
             if (node.state === NodeStates.DNI.EMPTY) {
                 node.state = NodeStates.DNI.IMAGES_LOADED;
                 this.updateNodeDisplay(node);
+
+                // Show the validate button after loading
+                validateButton.style.display = 'block';
             }
         };
-        
+
         const validateButton = document.createElement('button');
         validateButton.textContent = 'Validate';
         validateButton.className = 'node-button';
+        validateButton.style.display = 'none'; // Initially hidden
         validateButton.onclick = (e) => {
             e.stopPropagation();
             if (node.state === NodeStates.DNI.IMAGES_LOADED) {
@@ -546,10 +550,10 @@ class NodeEditor extends EventEmitter {
                 this.updateNodeDisplay(node);
             }
         };
-        
+
         container.appendChild(loadButton);
         container.appendChild(validateButton);
-        
+
         return container;
     }
 

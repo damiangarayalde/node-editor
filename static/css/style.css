@@ -558,3 +558,20 @@ body, html {
     margin-top: 4px;   /* Add some spacing from the title */
     font-weight: normal;
 }
+
+/* Node border styles based on status */
+.node[data-state="empty"] {
+    border: 2px solid rgba(255, 99, 71, 0.5); /* Pastel red */
+}
+
+.node[data-state="images_loaded"] {
+    border: 2px solid rgba(255, 165, 0, 0.5); /* Pastel orange */
+}
+
+.node[data-state="data_extracted"] {
+    border: 2px solid rgba(255, 223, 0, 0.5); /* Pastel yellow */
+}
+
+.node[data-state="validated"] {
+    border: 2px solid rgba(144, 238, 144, 0.5); /* Pastel green */
+}
