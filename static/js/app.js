@@ -140,11 +140,11 @@ class NodeEditor extends EventEmitter {
             id: nodeId,
             x,
             y,
-            width: 250,
-            height: type === 'Outputs' ? 150 : 100,
+            width: 375,  // Increased from 250
+            height: type === 'DocBuilder' ? 150 : 100,  // Updated type name
             type: type,
             title: type === 'Inputs' || type === 'InputRaw' ? 'Empty' : `${type} ${nodeId}`,
-            inputs: type === 'Outputs' ? [
+            inputs: type === 'DocBuilder' ? [  // Updated type name
                 { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
             ] : [{ id: `in_${nodeId}`, name: 'Input' }],
@@ -204,7 +204,7 @@ class NodeEditor extends EventEmitter {
         content.className = 'node-content';
         
         // Add text window for Output type nodes
-        if (node.type === 'Outputs') {
+        if (node.type === 'DocBuilder') { // Changed from 'Outputs'
             const textContainer = document.createElement('div');
             textContainer.className = 'node-text-container';
             textContainer.style.position = 'relative';
@@ -263,7 +263,7 @@ class NodeEditor extends EventEmitter {
             arrow.textContent = '▼';
             
             const headerText = document.createElement('span');
-            headerText.textContent = 'Input Fields';
+            headerText.textContent = 'Info';  // Changed from 'Input Fields'
             
             collapsibleHeader.appendChild(arrow);
             collapsibleHeader.appendChild(headerText);
@@ -864,7 +864,7 @@ COMPRADORES:
     // Update the existing updateOutputText method to use the new methods
     async updateOutputText(targetId) {
         const outputNode = this.nodes.find(node => {
-            return node.type === 'Outputs' && node.inputs.some(input => input.id === targetId);
+            return node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId);
         });
         
         if (outputNode) {
@@ -1022,6 +1022,11 @@ COMPRADORES:
                     }
                 }
             }
+            else {
+                node.title = 'Empty';
+            }
+        } else if (node.type === 'DocBuilder') {
+            node.title = `DocBuilder ${node.id}`;
         }
     }
 }
@@ -1034,4 +1039,3 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 );
-
