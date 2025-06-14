@@ -69,7 +69,7 @@ body, html {
     background: #2d3748;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    min-width: 200px;
+    min-width: 300px;  /* Increased from 200px */
     pointer-events: auto;
     user-select: none;
     transition: box-shadow 0.2s ease;
@@ -326,8 +326,8 @@ body, html {
 }
 
 .node-text-container {
-    min-width: 200px;
-    max-width: 400px;
+    min-width: 300px;  /* Increased from 200px */
+    max-width: 600px;  /* Increased from 400px */
 }
 
 /* JSON editor styles */
@@ -367,7 +367,7 @@ body, html {
 
 /* Adjust node size for Input type */
 .node[data-node-type="Inputs"] {
-    min-width: 250px;
+    min-width: 375px;  /* Increased from 250px */
 }
 
 /* Add these new styles */

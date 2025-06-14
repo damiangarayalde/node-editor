@@ -115,7 +115,7 @@ def handle_nodes():
                     'id': 1,
                     'x': 100,
                     'y': 100,
-                    'width': 250,
+                    'width': 375,  # Increased from 250
                     'height': 100,
                     'type': 'Inputs',
                     'title': 'Inputs 1',
@@ -133,10 +133,10 @@ def handle_nodes():
                     'id': 2,
                     'x': 400,
                     'y': 100,
-                    'width': 200,
+                    'width': 375,  # Increased from 200
                     'height': 100,
-                    'type': 'Outputs',  # Changed from 'default' to 'Outputs'
-                    'title': 'Outputs 2',
+                    'type': 'DocBuilder',  # Changed from 'Outputs'
+                    'title': 'DocBuilder 2',  # Updated title
                     'inputs': [
                         {'id': 'in_2_vendedor', 'name': 'Vendedor'},
                         {'id': 'in_2_comprador', 'name': 'Comprador'}
