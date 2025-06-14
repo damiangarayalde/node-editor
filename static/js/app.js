@@ -251,9 +251,20 @@ class NodeEditor extends EventEmitter {
     }
 
     renderDNINode(node, content) {
-        // Create DNI specific content
-        this.createDNINodeContent(node, content);
         
+        // Create DNI specific content
+        // Create and add collapsible section with fields
+        const collapsible = this.createCollapsibleSection(node);
+        content.appendChild(collapsible);
+
+        // Add photo capture buttons
+        const photoButtons = this.createPhotoButtons(node);
+        content.appendChild(photoButtons);
+
+        const actionButtons = this.createActionButtons(node);
+        content.appendChild(actionButtons);        
+
+
         // Add inputs/outputs
         const ioContainer = this.createIOContainer(node);
         content.appendChild(ioContainer);
@@ -344,18 +355,6 @@ class NodeEditor extends EventEmitter {
         });
     }
 
-    createDNINodeContent(node, content) {
-        // Create and add collapsible section with fields
-        const collapsible = this.createCollapsibleSection(node);
-        content.appendChild(collapsible);
-    
-        // Add photo capture buttons
-        const photoButtons = this.createPhotoButtons(node);
-        content.appendChild(photoButtons);
-    
-        const actionButtons = this.createActionButtons(node);
-        content.appendChild(actionButtons);
-    }
 
     createCollapsibleSection(node) {
         const collapsible = document.createElement('div');
