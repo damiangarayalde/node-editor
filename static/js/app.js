@@ -189,14 +189,38 @@ class NodeEditor extends EventEmitter {
         nodeEl.style.top = `${node.y}px`;
         nodeEl.style.width = `${node.width}px`;
         nodeEl.dataset.nodeId = node.id;
+        nodeEl.dataset.state = node.state;
         
         // Make node draggable
         nodeEl.draggable = true;
-        nodeEl.addEventListener('dragstart', (e) => {
-            e.preventDefault(); // Prevent default drag behavior
-        });
+        nodeEl.addEventListener('dragstart', (e) => e.preventDefault());
         
-        // Node header with title and delete button
+        // Create base structure
+        const header = this.createNodeHeader(node);
+        const content = document.createElement('div');
+        content.className = 'node-content';
+        
+        // Render specific node type content
+        switch(node.type) {
+            case 'dni':
+                this.renderDNINode(node, content);
+                break;
+            case 'DocBuilder':
+                this.renderDocBuilderNode(node, content);
+                break;
+            default:
+                this.renderDefaultNode(node, content);
+        }
+        
+        nodeEl.appendChild(header);
+        nodeEl.appendChild(content);
+        this.nodesContainer.appendChild(nodeEl);
+        
+        // Make node draggable
+        header.addEventListener('mousedown', (e) => this.startNodeDrag(e, node));
+    }
+
+    createNodeHeader(node) {
         const header = document.createElement('div');
         header.className = 'node-header';
         
@@ -206,33 +230,9 @@ class NodeEditor extends EventEmitter {
         const titleMain = document.createElement('div');
         titleMain.className = 'node-title-main';
         
-        if (node.type === 'dni') {
-            // Add icon and main title
-            const icon = document.createElement('span');
-            icon.innerHTML = '🪪';
-            icon.style.fontSize = '40px';
-            
-            const title = document.createElement('span');
-            // Add state to the title
-            title.textContent = ` ${node.data?.dni || 'sin datos del dni'} (${node.state || NodeStates.DNI.EMPTY})`;
-            
-            titleMain.appendChild(icon);
-            titleMain.appendChild(title);
-    
-            
-            titleContainer.appendChild(titleMain);
-            //titleContainer.appendChild(deleteBtn);
-            
-            // Add subtitles
-            const subtitle = document.createElement('div');
-            subtitle.className = 'node-subtitle';
-            subtitle.textContent = node.data?.surname && node.data?.name ? 
-                `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
-                'sin datos del apellido y nombre';
-            
-            header.appendChild(titleMain);
-            header.appendChild(subtitle);
-        }
+        const title = document.createElement('span');
+        title.textContent = node.title;
+        titleMain.appendChild(title);
         
         // Add delete button
         const deleteBtn = document.createElement('button');
@@ -245,142 +245,103 @@ class NodeEditor extends EventEmitter {
         
         titleContainer.appendChild(titleMain);
         titleContainer.appendChild(deleteBtn);
-        header.insertBefore(titleContainer, header.firstChild);
+        header.appendChild(titleContainer);
         
-        // Node content
-        const content = document.createElement('div');
-        content.className = 'node-content';
-        
-        // Add text window for Output type nodes
-        if (node.type === 'DocBuilder') { // Changed from 'Outputs'
-            const textContainer = document.createElement('div');
-            textContainer.className = 'node-text-container';
-            textContainer.style.position = 'relative';
-            textContainer.style.margin = '8px';
-            
-            // Add header with update button
-            const textHeader = document.createElement('div');
-            textHeader.style.display = 'flex';
-            textHeader.style.justifyContent = 'flex-end';
-            textHeader.style.marginBottom = '4px';
-            
-            const updateBtn = document.createElement('button');
-            updateBtn.className = 'update-btn';
-            updateBtn.innerHTML = '🔄';
-            updateBtn.title = 'Update text';
-            updateBtn.onclick = (e) => {
-                e.stopPropagation();
-                // Update text only when clicked
-                if (node.state === NodeStates.DOC_BUILDER.INPUTS_CONNECTED) {
-                    this.updateOutputText(node.inputs[0].id)
-                        .then(() => {
-                            node.state = NodeStates.DOC_BUILDER.DOCUMENT_BUILT;
-                            this.updateNodeDisplay(node);
-                        })
-                        .catch(console.error);
-                }
-            };
-            
-            textHeader.appendChild(updateBtn);
-            textContainer.appendChild(textHeader);
-            
-            const textDiv = document.createElement('div');
-            textDiv.className = 'node-textarea';
-            textDiv.contentEditable = true;
-            textDiv.style.whiteSpace = 'pre-wrap';
-            
-            // Set default content
-            textDiv.innerHTML = 'Click update button to generate text';
-            
-            textContainer.appendChild(textDiv);
-            content.appendChild(textContainer);
-            
-            // Update text if there's a connection
-            if (this.connections.some(conn => 
-                node.inputs.some(input => input.id === conn.target)
-            )) {
-                this.updateOutputText(node.inputs[0].id);
-            }
-        }
-        
-        if (node.type === 'dni') {
-            // Add buttons for dni type nodes
-            this.createDNINodeContent(node, content);
-        }
+        return header;
+    }
 
+    renderDNINode(node, content) {
+        // Create DNI specific content
+        this.createDNINodeContent(node, content);
         
-        // Inputs
+        // Add inputs/outputs
+        const ioContainer = this.createIOContainer(node);
+        content.appendChild(ioContainer);
+    }
+
+    renderDocBuilderNode(node, content) {
+        // Create text area for document builder
+        const textContainer = document.createElement('div');
+        textContainer.className = 'node-text-container';
+        
+        const textarea = document.createElement('textarea');
+        textarea.className = 'node-textarea';
+        textarea.placeholder = 'Generated document will appear here...';
+        textarea.readOnly = true;
+        
+        textContainer.appendChild(textarea);
+        content.appendChild(textContainer);
+        
+        // Add inputs/outputs
+        const ioContainer = this.createIOContainer(node);
+        content.appendChild(ioContainer);
+    }
+
+    renderDefaultNode(node, content) {
+        // Add inputs/outputs for default node type
+        const ioContainer = this.createIOContainer(node);
+        content.appendChild(ioContainer);
+    }
+
+    createIOContainer(node) {
+        const container = document.createElement('div');
+        
+        // Create inputs
         const inputs = document.createElement('div');
         inputs.className = 'node-inputs';
         node.inputs.forEach(input => {
-            const inputEl = document.createElement('div');
-            inputEl.className = 'node-input';
-            inputEl.dataset.connectorId = input.id;
-            inputEl.innerHTML = `
-                <div class="connector input-connector" 
-                     data-connector-id="${input.id}" 
-                     data-is-output="false">
-                </div>
-                <span>${input.name}</span>
-            `;
-            
-            // Add click handler to input connector
-            const connectorEl = inputEl.querySelector('.connector');
-            connectorEl.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                const rect = connectorEl.getBoundingClientRect();
-                const editorRect = this.editor.getBoundingClientRect();
-                
-                // Calculate the exact center of the connector
-                const x = rect.left + (rect.width / 2) - editorRect.left;
-                const y = rect.top + (rect.height / 2) - editorRect.top;
-                
-                this.startConnection(input.id, x, y, false);
-            });
-            
+            const inputEl = this.createConnector(input, false);
             inputs.appendChild(inputEl);
         });
         
-        // Outputs
+        // Create outputs
         const outputs = document.createElement('div');
         outputs.className = 'node-outputs';
         node.outputs.forEach(output => {
-            const outputEl = document.createElement('div');
-            outputEl.className = 'node-output';
-            outputEl.dataset.connectorId = output.id;
-            outputEl.innerHTML = `
-                <span>${output.name}</span>
-                <div class="connector output-connector" 
-                     data-connector-id="${output.id}" 
-                     data-is-output="true">
-                </div>
-            `;
-            
-            // Add click handler for output connector
-            const connectorEl = outputEl.querySelector('.connector');
-            connectorEl.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                const rect = connectorEl.getBoundingClientRect();
-                const editorRect = this.editor.getBoundingClientRect();
-                
-                // Calculate the exact center of the connector
-                const x = rect.left + (rect.width / 2) - editorRect.left;
-                const y = rect.top + (rect.height / 2) - editorRect.top;
-                
-                this.startConnection(output.id, x, y, true);
-            });
-            
+            const outputEl = this.createConnector(output, true);
             outputs.appendChild(outputEl);
         });
         
-        content.appendChild(inputs);
-        content.appendChild(outputs);
-        nodeEl.appendChild(header);
-        nodeEl.appendChild(content);
-        this.nodesContainer.appendChild(nodeEl);
+        container.appendChild(inputs);
+        container.appendChild(outputs);
+        return container;
+    }
+
+    createConnector(connector, isOutput) {
+        const el = document.createElement('div');
+        el.className = isOutput ? 'node-output' : 'node-input';
         
-        // Make node draggable
-        header.addEventListener('mousedown', (e) => this.startNodeDrag(e, node));
+        const connectorEl = document.createElement('div');
+        connectorEl.className = `connector ${isOutput ? 'output-connector' : 'input-connector'}`;
+        connectorEl.dataset.connectorId = connector.id;
+        
+        const label = document.createElement('span');
+        label.textContent = connector.name;
+        
+        if (isOutput) {
+            el.appendChild(label);
+            el.appendChild(connectorEl);
+        } else {
+            el.appendChild(connectorEl);
+            el.appendChild(label);
+        }
+        
+        // Add connector event listeners
+        this.setupConnectorEvents(connectorEl, isOutput);
+        
+        return el;
+    }
+
+    setupConnectorEvents(connectorEl, isOutput) {
+        connectorEl.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {  // Left click only
+                e.stopPropagation();
+                const rect = connectorEl.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                this.startConnection(connectorEl.dataset.connectorId, x, y, isOutput);
+            }
+        });
     }
 
     createDNINodeContent(node, content) {
