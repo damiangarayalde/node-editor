@@ -140,16 +140,16 @@ class NodeEditor extends EventEmitter {
             id: nodeId,
             x,
             y,
-            width: 375,  // Increased from 250
-            height: type === 'DocBuilder' ? 150 : 100,  // Updated type name
+            width: 375,
+            height: type === 'DocBuilder' ? 150 : 100,
             type: type,
-            title: type === 'Inputs' || type === 'InputRaw' ? 'Empty' : `${type} ${nodeId}`,
-            inputs: type === 'DocBuilder' ? [  // Updated type name
+            title: type === 'dni' || type === 'InputRaw' ? 'Empty' : `${type} ${nodeId}`,
+            inputs: type === 'DocBuilder' ? [
                 { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
             ] : [{ id: `in_${nodeId}`, name: 'Input' }],
             outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            data: (type === 'Inputs' || type === 'InputRaw') ? {
+            data: (type === 'dni' || type === 'InputRaw') ? {
                 name: '',
                 surname: '',
                 dateOfBirth: '',
@@ -249,7 +249,7 @@ class NodeEditor extends EventEmitter {
         }
         
         // Add buttons for Input type nodes
-        if (node.type === 'Inputs' || node.type === 'InputRaw') {
+        if (node.type === 'dni' || node.type === 'InputRaw') {
             // Create collapsible container
             const collapsible = document.createElement('div');
             collapsible.className = 'collapsible';
@@ -324,7 +324,7 @@ class NodeEditor extends EventEmitter {
             content.appendChild(collapsible);
 
             // Only add buttons for regular Inputs type
-            if (node.type === 'Inputs') {
+            if (node.type === 'dni') {
                 const buttonContainer = document.createElement('div');
                 buttonContainer.className = 'node-buttons';
                 buttonContainer.style.display = 'flex';
@@ -1004,7 +1004,7 @@ COMPRADORES:
 
     // Add this to the NodeEditor class in app.js
     updateNodeTitle(node) {
-        if ((node.type === 'Inputs' || node.type === 'InputRaw') && node.data) {
+        if ((node.type === 'dni' || node.type === 'InputRaw') && node.data) {
             const { name, surname, dni } = node.data;
             if (name || surname || dni) {
                 node.title = `${(surname || '').toUpperCase()} ${(name || '').toLowerCase()} - ${dni || ''}`.trim();
