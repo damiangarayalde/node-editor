@@ -195,7 +195,7 @@ class NodeEditor extends EventEmitter {
             icon.style.fontSize = '16px';
             
             const title = document.createElement('span');
-            title.textContent = `DNI: ${node.data?.dni || ''}`;
+            title.textContent = ` ${node.data?.dni || 'sin datos del dni'}`;
             
             titleMain.appendChild(icon);
             titleMain.appendChild(title);
@@ -220,7 +220,7 @@ class NodeEditor extends EventEmitter {
             subtitle.className = 'node-subtitle';
             subtitle.textContent = node.data?.surname && node.data?.name ? 
                 `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
-                'Empty';
+                'sin datos del apellido y nombre';
             
             header.appendChild(titleContainer);
             header.appendChild(subtitle);
@@ -293,8 +293,8 @@ class NodeEditor extends EventEmitter {
             }
         }
         
-        // Add buttons for Input type nodes
-        if (node.type === 'dni' || node.type === 'InputRaw') {
+        // Add buttons for dni type nodes
+        if (node.type === 'dni') {
             // Create collapsible container
             const collapsible = document.createElement('div');
             collapsible.className = 'collapsible';
@@ -367,6 +367,35 @@ class NodeEditor extends EventEmitter {
             collapsible.appendChild(collapsibleHeader);
             collapsible.appendChild(collapsibleContent);
             content.appendChild(collapsible);
+
+
+            // // Add photo capture buttons container
+            const photoButtonsContainer = document.createElement('div');
+            photoButtonsContainer.className = 'photo-capture-buttons';
+            
+            // Front photo button
+            const frontPhotoBtn = document.createElement('button');
+            frontPhotoBtn.className = 'photo-capture-btn';
+            frontPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto frente DNI`;
+            frontPhotoBtn.onclick = (e) => {
+                e.stopPropagation();
+                console.log('Capture front photo for node:', node.id);
+                // Add your photo capture logic here
+            };
+        
+            // Back photo button
+            const backPhotoBtn = document.createElement('button');
+            backPhotoBtn.className = 'photo-capture-btn';
+            backPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto dorso DNI`;
+            backPhotoBtn.onclick = (e) => {
+                e.stopPropagation();
+                console.log('Capture back photo for node:', node.id);
+                // Add your photo capture logic here
+            };
+
+            photoButtonsContainer.appendChild(frontPhotoBtn);
+            photoButtonsContainer.appendChild(backPhotoBtn);
+            content.appendChild(photoButtonsContainer);
 
             // Only add buttons for regular Inputs type
             if (node.type === 'dni') {
@@ -1057,7 +1086,7 @@ COMPRADORES:
             if (nodeEl) {
                 const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
                 if (titleSpan) {
-                    titleSpan.textContent = `DNI: ${node.data.dni || ''}`;
+                    titleSpan.textContent = ` ${node.data.dni || 'sin datos del dni'}`;
                 }
             }
         }
@@ -1072,7 +1101,7 @@ COMPRADORES:
                 if (subtitle) {
                     subtitle.textContent = node.data.surname || node.data.name ? 
                         `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
-                        'Empty';
+                        'sin datos del apellido y nombre';
                 }
             }
         }

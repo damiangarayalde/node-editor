@@ -543,3 +543,11 @@ body, html {
 .photo-capture-btn .icon {
     font-size: 16px;
 }
+
+.photo-capture-btn.success {
+    color: #48BB78;
+}
+
+.photo-capture-btn.error {
+    color: #F56565;
+}
