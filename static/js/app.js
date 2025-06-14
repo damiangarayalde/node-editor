@@ -182,22 +182,67 @@ class NodeEditor extends EventEmitter {
         const header = document.createElement('div');
         header.className = 'node-header';
         
-        const title = document.createElement('span');
-        title.textContent = node.title;
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'node-title';
         
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-node-btn';
-        deleteBtn.innerHTML = '🗑️';
-        deleteBtn.title = 'Delete node';
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.showDeleteConfirmation(node, () => {
-                this.deleteNode(node.id);
-            });
-        };
+        const titleMain = document.createElement('div');
+        titleMain.className = 'node-title-main';
         
-        header.appendChild(title);
-        header.appendChild(deleteBtn);
+        if (node.type === 'dni') {
+            // Add icon and main title
+            const icon = document.createElement('span');
+            icon.innerHTML = '🪪'; // ID card emoji
+            icon.style.fontSize = '16px';
+            
+            const title = document.createElement('span');
+            title.textContent = `DNI: ${node.data?.dni || ''}`;
+            
+            titleMain.appendChild(icon);
+            titleMain.appendChild(title);
+            
+            // Add delete button to title container
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-node-btn';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.title = 'Delete node';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.showDeleteConfirmation(node, () => {
+                    this.deleteNode(node.id);
+                });
+            };
+            
+            titleContainer.appendChild(titleMain);
+            titleContainer.appendChild(deleteBtn);
+            
+            // Add subtitles
+            const subtitle = document.createElement('div');
+            subtitle.className = 'node-subtitle';
+            subtitle.textContent = node.data?.surname && node.data?.name ? 
+                `${(node.data.surname || '').toUpperCase()}, ${this.capitalizeFirstLetter(node.data.name || '')}` : 
+                'Empty';
+            
+            header.appendChild(titleContainer);
+            header.appendChild(subtitle);
+        } else {
+            // Original title handling for other node types
+            const title = document.createElement('span');
+            title.textContent = node.title;
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-node-btn';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.title = 'Delete node';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.showDeleteConfirmation(node, () => {
+                    this.deleteNode(node.id);
+                });
+            };
+            
+            header.appendChild(title);
+            header.appendChild(deleteBtn);
+        }
         
         // Node content
         const content = document.createElement('div');
@@ -297,13 +342,13 @@ class NodeEditor extends EventEmitter {
                 input.value = node.data?.[field.key] || '';
                 input.className = 'json-input';
                 
-                input.addEventListener('change', (e) => {
+                input.addEventListener('input', (e) => {  // Changed from 'change' to 'input'
                     node.data = node.data || {};
                     node.data[field.key] = e.target.value;
-                    console.log('Updated node data:', node.data);
                     
-                    // Update the node title when data changes
+                    // Update both title and subtitle immediately
                     this.updateNodeTitle(node);
+                    this.updateNodeSubtitle(node);
                 });
                 
                 fieldContainer.appendChild(label);
@@ -1004,29 +1049,29 @@ COMPRADORES:
 
     // Add this to the NodeEditor class in app.js
     updateNodeTitle(node) {
-        if ((node.type === 'dni' || node.type === 'InputRaw') && node.data) {
-            const { name, surname, dni } = node.data;
-            if (name || surname || dni) {
-                node.title = `${(surname || '').toUpperCase()} ${(name || '').toLowerCase()} - ${dni || ''}`.trim();
-                const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
-                if (nodeEl) {
-                    const titleEl = nodeEl.querySelector('.node-header span');
-                    if (titleEl) {
-                        titleEl.textContent = node.title;
-                        
-                        // Update the collapsible header text if empty
-                        const headerText = nodeEl.querySelector('.collapsible-header span:last-child');
-                        if (headerText && headerText.textContent === 'Input Fields') {
-                            headerText.textContent = `Input Fields - ${node.title}`;
-                        }
-                    }
+        if (node.type === 'dni' && node.data) {
+            const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeEl) {
+                const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
+                if (titleSpan) {
+                    titleSpan.textContent = `DNI: ${node.data.dni || ''}`;
                 }
             }
-            else {
-                node.title = 'Empty';
+        }
+    }
+
+    // Add new method for subtitle updates
+    updateNodeSubtitle(node) {
+        if (node.type === 'dni' && node.data) {
+            const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeEl) {
+                const subtitle = nodeEl.querySelector('.node-subtitle');
+                if (subtitle) {
+                    subtitle.textContent = node.data.surname || node.data.name ? 
+                        `${(node.data.surname || '').toUpperCase()}, ${this.capitalizeFirstLetter(node.data.name || '')}` : 
+                        'Empty';
+                }
             }
-        } else if (node.type === 'DocBuilder') {
-            node.title = `DocBuilder ${node.id}`;
         }
     }
 }
