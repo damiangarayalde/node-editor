@@ -32,6 +32,22 @@ class EventEmitter {
     }
 }
 
+// Add NodeStates at the top of the file
+const NodeStates = {
+    DNI: {
+        EMPTY: 'empty',
+        IMAGES_LOADED: 'images_loaded',
+        DATA_EXTRACTED: 'data_extracted',
+        VALIDATED: 'validated'
+    },
+    DOC_BUILDER: {
+        DISCONNECTED: 'disconnected',
+        INPUTS_CONNECTED: 'inputs_connected',
+        DOCUMENT_BUILT: 'document_built',
+        VALIDATED: 'validated'
+    }
+};
+
 class NodeEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
     static createConnectionPath(x1, y1, x2, y2) {
@@ -144,12 +160,15 @@ class NodeEditor extends EventEmitter {
             height: type === 'DocBuilder' ? 150 : 100,
             type: type,
             title: type === 'dni' ? 'Empty' : `${type} ${nodeId}`,
+            // Add initial state based on node type
+            state: type === 'dni' ? NodeStates.DNI.EMPTY : 
+                   type === 'DocBuilder' ? NodeStates.DOC_BUILDER.DISCONNECTED : null,
             inputs: type === 'DocBuilder' ? [
                 { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
             ] : [{ id: `in_${nodeId}`, name: 'Input' }],
             outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            data:  type === 'dni'  ? {
+            data: type === 'dni' ? {
                 name: '',
                 surname: '',
                 dateOfBirth: '',
@@ -191,11 +210,12 @@ class NodeEditor extends EventEmitter {
         if (node.type === 'dni') {
             // Add icon and main title
             const icon = document.createElement('span');
-            icon.innerHTML = '🪪'; // ID card emoji
+            icon.innerHTML = '🪪';
             icon.style.fontSize = '16px';
             
             const title = document.createElement('span');
-            title.textContent = ` ${node.data?.dni || 'sin datos del dni'}`;
+            // Add state to the title
+            title.textContent = ` ${node.data?.dni || 'sin datos del dni'} (${node.state || NodeStates.DNI.EMPTY})`;
             
             titleMain.appendChild(icon);
             titleMain.appendChild(title);
@@ -222,27 +242,22 @@ class NodeEditor extends EventEmitter {
                 `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
                 'sin datos del apellido y nombre';
             
-            header.appendChild(titleContainer);
+            header.appendChild(titleMain);
             header.appendChild(subtitle);
-        } else {
-            // Original title handling for other node types
-            const title = document.createElement('span');
-            title.textContent = node.title;
-            
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-node-btn';
-            deleteBtn.innerHTML = '🗑️';
-            deleteBtn.title = 'Delete node';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.showDeleteConfirmation(node, () => {
-                    this.deleteNode(node.id);
-                });
-            };
-            
-            header.appendChild(title);
-            header.appendChild(deleteBtn);
         }
+        
+        // Add delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-node-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.showDeleteConfirmation(node, () => this.deleteNode(node.id));
+        };
+        
+        titleContainer.appendChild(titleMain);
+        titleContainer.appendChild(deleteBtn);
+        header.insertBefore(titleContainer, header.firstChild);
         
         // Node content
         const content = document.createElement('div');
@@ -268,7 +283,14 @@ class NodeEditor extends EventEmitter {
             updateBtn.onclick = (e) => {
                 e.stopPropagation();
                 // Update text only when clicked
-                this.updateOutputText(node.inputs[0].id).catch(console.error);
+                if (node.state === NodeStates.DOC_BUILDER.INPUTS_CONNECTED) {
+                    this.updateOutputText(node.inputs[0].id)
+                        .then(() => {
+                            node.state = NodeStates.DOC_BUILDER.DOCUMENT_BUILT;
+                            this.updateNodeDisplay(node);
+                        })
+                        .catch(console.error);
+                }
             };
             
             textHeader.appendChild(updateBtn);
@@ -508,7 +530,10 @@ class NodeEditor extends EventEmitter {
         loadButton.className = 'node-button';
         loadButton.onclick = (e) => {
             e.stopPropagation();
-            console.log('Load clicked for node:', node.id);
+            if (node.state === NodeStates.DNI.EMPTY) {
+                node.state = NodeStates.DNI.IMAGES_LOADED;
+                this.updateNodeDisplay(node);
+            }
         };
         
         const validateButton = document.createElement('button');
@@ -516,13 +541,27 @@ class NodeEditor extends EventEmitter {
         validateButton.className = 'node-button';
         validateButton.onclick = (e) => {
             e.stopPropagation();
-            console.log('Validate clicked for node:', node.id);
+            if (node.state === NodeStates.DNI.IMAGES_LOADED) {
+                node.state = NodeStates.DNI.VALIDATED;
+                this.updateNodeDisplay(node);
+            }
         };
         
         container.appendChild(loadButton);
         container.appendChild(validateButton);
         
         return container;
+    }
+
+    // Add method to update node display
+    updateNodeDisplay(node) {
+        const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+        if (!nodeEl) return;
+        
+        const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
+        if (titleSpan && node.type === 'dni') {
+            titleSpan.textContent = `DNI: ${node.data?.dni || 'sin datos'} (${node.state})`;
+        }
     }
 
     startNodeDrag(e, node) {
@@ -755,6 +794,14 @@ class NodeEditor extends EventEmitter {
             // this.updateOutputText(targetId).catch(console.error);
             
             this.emit('connectionCreated', { sourceId, targetId });
+
+            // Update DocBuilder state if needed
+            const targetNode = this.nodes.find(node =>
+                node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId)
+            );
+            if (targetNode) {
+                this.updateDocBuilderState(targetNode);
+            }
         }
    }
 
@@ -1097,6 +1144,14 @@ COMPRADORES:
             
             // Redraw all connections
             this.updateConnections();
+
+            // Update DocBuilder state if needed
+            const targetNode = this.nodes.find(node =>
+                node.type === 'DocBuilder' && node.inputs.some(input => input.id === connection.target)
+            );
+            if (targetNode) {
+                this.updateDocBuilderState(targetNode);
+            }
         }
     }
 
@@ -1127,6 +1182,38 @@ COMPRADORES:
                         `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
                         'sin datos del apellido y nombre';
                 }
+            }
+        }
+   }
+
+    updateDocBuilderState(node) {
+        // Check if all inputs are connected
+        const allInputsConnected = node.inputs.every(input =>
+            this.connections.some(conn => conn.target === input.id)
+        );
+        
+        if (!allInputsConnected) {
+            node.state = NodeStates.DOC_BUILDER.DISCONNECTED;
+        } else if (node.state === NodeStates.DOC_BUILDER.DISCONNECTED) {
+            node.state = NodeStates.DOC_BUILDER.INPUTS_CONNECTED;
+        }
+        
+        this.updateNodeDisplay(node);
+    }
+
+    updateNodeDisplay(node) {
+        const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+        if (!nodeEl) return;
+        
+        const titleSpan = nodeEl.querySelector(node.type === 'dni' ? 
+            '.node-title-main span:last-child' : 
+            '.node-title-main span');
+        
+        if (titleSpan) {
+            if (node.type === 'dni') {
+                titleSpan.textContent = ` ${node.data?.dni || 'sin datos del dni'} (${node.state})`;
+            } else if (node.type === 'DocBuilder') {
+                titleSpan.textContent = `${node.title} (${node.state})`;
             }
         }
     }

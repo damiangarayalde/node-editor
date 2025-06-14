@@ -119,6 +119,7 @@ def handle_nodes():
                     'height': 100,
                     'type': 'dni',
                     'title': 'Empty',
+                    'state': 'empty',  # Add initial state
                     'inputs': [{'id': 'in_1', 'name': 'Input'}],
                     'outputs': [{'id': 'out_1', 'name': 'Output'}],
                     'data': {
