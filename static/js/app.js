@@ -293,139 +293,11 @@ class NodeEditor extends EventEmitter {
             }
         }
         
-        // Add buttons for dni type nodes
         if (node.type === 'dni') {
-            // Create collapsible container
-            const collapsible = document.createElement('div');
-            collapsible.className = 'collapsible';
-            
-            // Create collapsible header
-            const collapsibleHeader = document.createElement('div');
-            collapsibleHeader.className = 'collapsible-header';
-            
-            const arrow = document.createElement('span');
-            arrow.className = 'collapsible-arrow';
-            arrow.textContent = '▼';
-            
-            const headerText = document.createElement('span');
-            headerText.textContent = 'Info';  // Changed from 'Input Fields'
-            
-            collapsibleHeader.appendChild(arrow);
-            collapsibleHeader.appendChild(headerText);
-            
-            // Create collapsible content
-            const collapsibleContent = document.createElement('div');
-            collapsibleContent.className = 'collapsible-content';
-            
-            // Add JSON editor inside collapsible content
-            const jsonEditor = document.createElement('div');
-            jsonEditor.className = 'json-editor';
-            
-            const fields = [
-                { key: 'name', label: 'Name' },
-                { key: 'surname', label: 'Surname' },
-                { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-                { key: 'dni', label: 'DNI' },
-                { key: 'address', label: 'Address' }
-            ];
-
-            fields.forEach(field => {
-                const fieldContainer = document.createElement('div');
-                fieldContainer.className = 'json-field';
-                
-                const label = document.createElement('label');
-                label.textContent = field.label;
-                label.className = 'json-label';
-                
-                const input = document.createElement('input');
-                input.type = field.type || 'text';
-                input.value = node.data?.[field.key] || '';
-                input.className = 'json-input';
-                
-                input.addEventListener('input', (e) => {  // Changed from 'change' to 'input'
-                    node.data = node.data || {};
-                    node.data[field.key] = e.target.value;
-                    
-                    // Update both title and subtitle immediately
-                    this.updateNodeTitle(node);
-                    this.updateNodeSubtitle(node);
-                });
-                
-                fieldContainer.appendChild(label);
-                fieldContainer.appendChild(input);
-                jsonEditor.appendChild(fieldContainer);
-            });
-            
-            // Add toggle functionality
-            collapsibleHeader.addEventListener('click', () => {
-                arrow.classList.toggle('collapsed');
-                collapsibleContent.classList.toggle('expanded');
-            });
-            
-            // Assemble the collapsible
-            collapsibleContent.appendChild(jsonEditor);
-            collapsible.appendChild(collapsibleHeader);
-            collapsible.appendChild(collapsibleContent);
-            content.appendChild(collapsible);
-
-
-            // // Add photo capture buttons container
-            const photoButtonsContainer = document.createElement('div');
-            photoButtonsContainer.className = 'photo-capture-buttons';
-            
-            // Front photo button
-            const frontPhotoBtn = document.createElement('button');
-            frontPhotoBtn.className = 'photo-capture-btn';
-            frontPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto frente DNI`;
-            frontPhotoBtn.onclick = (e) => {
-                e.stopPropagation();
-                console.log('Capture front photo for node:', node.id);
-                // Add your photo capture logic here
-            };
-        
-            // Back photo button
-            const backPhotoBtn = document.createElement('button');
-            backPhotoBtn.className = 'photo-capture-btn';
-            backPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto dorso DNI`;
-            backPhotoBtn.onclick = (e) => {
-                e.stopPropagation();
-                console.log('Capture back photo for node:', node.id);
-                // Add your photo capture logic here
-            };
-
-            photoButtonsContainer.appendChild(frontPhotoBtn);
-            photoButtonsContainer.appendChild(backPhotoBtn);
-            content.appendChild(photoButtonsContainer);
-
-            // Only add buttons for regular Inputs type
-            if (node.type === 'dni') {
-                const buttonContainer = document.createElement('div');
-                buttonContainer.className = 'node-buttons';
-                buttonContainer.style.display = 'flex';
-                buttonContainer.style.gap = '8px';
-                buttonContainer.style.padding = '8px';
-                
-                const loadButton = document.createElement('button');
-                loadButton.textContent = 'Load';
-                loadButton.className = 'node-button';
-                loadButton.onclick = (e) => {
-                    e.stopPropagation();
-                    console.log('Load clicked for node:', node.id);
-                };
-                
-                const validateButton = document.createElement('button');
-                validateButton.textContent = 'Validate';
-                validateButton.className = 'node-button';
-                validateButton.onclick = (e) => {
-                    e.stopPropagation();
-                    console.log('Validate clicked for node:', node.id);
-                };
-                
-                buttonContainer.appendChild(loadButton);
-                buttonContainer.appendChild(validateButton);
-                content.appendChild(buttonContainer);
-            }
+            // Add buttons for dni type nodes
+            this.createDNINodeContent(node, content);
         }
+
         
         // Inputs
         const inputs = document.createElement('div');
@@ -499,6 +371,158 @@ class NodeEditor extends EventEmitter {
         
         // Make node draggable
         header.addEventListener('mousedown', (e) => this.startNodeDrag(e, node));
+    }
+
+    createDNINodeContent(node, content) {
+        // Create and add collapsible section with fields
+        const collapsible = this.createCollapsibleSection(node);
+        content.appendChild(collapsible);
+    
+        // Add photo capture buttons
+        const photoButtons = this.createPhotoButtons(node);
+        content.appendChild(photoButtons);
+    
+        const actionButtons = this.createActionButtons(node);
+        content.appendChild(actionButtons);
+    }
+
+    createCollapsibleSection(node) {
+        const collapsible = document.createElement('div');
+        collapsible.className = 'collapsible';
+        
+        // Create header
+        const collapsibleHeader = document.createElement('div');
+        collapsibleHeader.className = 'collapsible-header';
+        
+        const arrow = document.createElement('span');
+        arrow.className = 'collapsible-arrow';
+        arrow.textContent = '▼';
+        
+        const headerText = document.createElement('span');
+        headerText.textContent = 'Info';
+        
+        collapsibleHeader.appendChild(arrow);
+        collapsibleHeader.appendChild(headerText);
+        
+        // Create content
+        const collapsibleContent = document.createElement('div');
+        collapsibleContent.className = 'collapsible-content';
+        
+        // Add JSON editor
+        const jsonEditor = this.createJSONEditor(node);
+        collapsibleContent.appendChild(jsonEditor);
+        
+        // Add toggle functionality
+        collapsibleHeader.addEventListener('click', () => {
+            arrow.classList.toggle('collapsed');
+            collapsibleContent.classList.toggle('expanded');
+        });
+        
+        // Assemble
+        collapsible.appendChild(collapsibleHeader);
+        collapsible.appendChild(collapsibleContent);
+        
+        return collapsible;
+    }
+
+    createJSONEditor(node) {
+        const jsonEditor = document.createElement('div');
+        jsonEditor.className = 'json-editor';
+        
+        const fields = [
+            { key: 'name', label: 'Name' },
+            { key: 'surname', label: 'Surname' },
+            { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+            { key: 'dni', label: 'DNI' },
+            { key: 'address', label: 'Address' }
+        ];
+    
+        fields.forEach(field => this.createField(field, node, jsonEditor));
+        
+        return jsonEditor;
+    }
+
+    createField(field, node, container) {
+        const fieldContainer = document.createElement('div');
+        fieldContainer.className = 'json-field';
+        
+        const label = document.createElement('label');
+        label.textContent = field.label;
+        label.className = 'json-label';
+        
+        const input = document.createElement('input');
+        input.type = field.type || 'text';
+        input.value = node.data?.[field.key] || '';
+        input.className = 'json-input';
+        
+        input.addEventListener('input', (e) => {
+            node.data = node.data || {};
+            node.data[field.key] = e.target.value;
+            this.updateNodeTitle(node);
+            this.updateNodeSubtitle(node);
+        });
+        
+        fieldContainer.appendChild(label);
+        fieldContainer.appendChild(input);
+        container.appendChild(fieldContainer);
+    }
+
+    createPhotoButtons(node) {
+        const container = document.createElement('div');
+        container.className = 'photo-capture-buttons';
+        
+        // Create front photo button
+        const frontPhotoBtn = document.createElement('button');
+        frontPhotoBtn.className = 'photo-capture-btn';
+        frontPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto frente DNI`;
+        frontPhotoBtn.onclick = (e) => {
+            e.stopPropagation();
+            console.log('Capture front photo for node:', node.id);
+        };
+        
+        // Create back photo button
+        const backPhotoBtn = document.createElement('button');
+        backPhotoBtn.className = 'photo-capture-btn';
+        backPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto dorso DNI`;
+        backPhotoBtn.onclick = (e) => {
+            e.stopPropagation();
+            console.log('Capture back photo for node:', node.id);
+        };
+        
+        container.appendChild(frontPhotoBtn);
+        container.appendChild(backPhotoBtn);
+        
+        return container;
+    }
+
+
+    createActionButtons(node) {
+        const container = document.createElement('div');
+        container.className = 'node-buttons';
+        container.style.display = 'flex';
+        container.style.gap = '8px';
+        container.style.padding = '8px';
+        
+        const loadButton = document.createElement('button');
+        loadButton.textContent = 'Load';
+        loadButton.className = 'node-button';
+        loadButton.onclick = (e) => {
+            e.stopPropagation();
+            console.log('Load clicked for node:', node.id);
+        };
+        
+        const validateButton = document.createElement('button');
+        validateButton.textContent = 'Validate';
+        validateButton.className = 'node-button';
+        validateButton.onclick = (e) => {
+            e.stopPropagation();
+            console.log('Validate clicked for node:', node.id);
+        };
+        
+        container.appendChild(loadButton);
+        container.appendChild(validateButton);
+        
+        return container;
     }
 
     startNodeDrag(e, node) {
