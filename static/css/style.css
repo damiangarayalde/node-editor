@@ -471,3 +471,37 @@ body, html {
     transform: rotate(180deg);
     color: #90cdf4;
 }
+
+/* Add collapsible styles */
+.collapsible-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #374151;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 8px;
+}
+
+.collapsible-header:hover {
+    background: #4B5563;
+}
+
+.collapsible-arrow {
+    transition: transform 0.3s ease;
+}
+
+.collapsible-arrow.collapsed {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.collapsible-content.expanded {
+    max-height: 500px; /* Adjust based on your content */
+}

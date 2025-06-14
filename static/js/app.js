@@ -250,49 +250,78 @@ class NodeEditor extends EventEmitter {
         
         // Add buttons for Input type nodes
         if (node.type === 'Inputs' || node.type === 'InputRaw') {
-            // Add JSON editor for Input and InputRaw type nodes
-            if (node.type === 'Inputs' || node.type === 'InputRaw') {
-                // Add JSON editor before the buttons
-                const jsonEditor = document.createElement('div');
-                jsonEditor.className = 'json-editor';
-                
-                const fields = [
-                    { key: 'name', label: 'Name' },
-                    { key: 'surname', label: 'Surname' },
-                    { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-                    { key: 'dni', label: 'DNI' },
-                    { key: 'address', label: 'Address' }
-                ];
+            // Create collapsible container
+            const collapsible = document.createElement('div');
+            collapsible.className = 'collapsible';
+            
+            // Create collapsible header
+            const collapsibleHeader = document.createElement('div');
+            collapsibleHeader.className = 'collapsible-header';
+            
+            const arrow = document.createElement('span');
+            arrow.className = 'collapsible-arrow';
+            arrow.textContent = '▼';
+            
+            const headerText = document.createElement('span');
+            headerText.textContent = 'Input Fields';
+            
+            collapsibleHeader.appendChild(arrow);
+            collapsibleHeader.appendChild(headerText);
+            
+            // Create collapsible content
+            const collapsibleContent = document.createElement('div');
+            collapsibleContent.className = 'collapsible-content';
+            
+            // Add JSON editor inside collapsible content
+            const jsonEditor = document.createElement('div');
+            jsonEditor.className = 'json-editor';
+            
+            const fields = [
+                { key: 'name', label: 'Name' },
+                { key: 'surname', label: 'Surname' },
+                { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+                { key: 'dni', label: 'DNI' },
+                { key: 'address', label: 'Address' }
+            ];
 
-                fields.forEach(field => {
-                    const fieldContainer = document.createElement('div');
-                    fieldContainer.className = 'json-field';
+            fields.forEach(field => {
+                const fieldContainer = document.createElement('div');
+                fieldContainer.className = 'json-field';
+                
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                label.className = 'json-label';
+                
+                const input = document.createElement('input');
+                input.type = field.type || 'text';
+                input.value = node.data?.[field.key] || '';
+                input.className = 'json-input';
+                
+                input.addEventListener('change', (e) => {
+                    node.data = node.data || {};
+                    node.data[field.key] = e.target.value;
+                    console.log('Updated node data:', node.data);
                     
-                    const label = document.createElement('label');
-                    label.textContent = field.label;
-                    label.className = 'json-label';
-                    
-                    const input = document.createElement('input');
-                    input.type = field.type || 'text';
-                    input.value = node.data?.[field.key] || '';
-                    input.className = 'json-input';
-                    
-                    input.addEventListener('change', (e) => {
-                        node.data = node.data || {};
-                        node.data[field.key] = e.target.value;
-                        console.log('Updated node data:', node.data);
-                        
-                        // Update the node title when data changes
-                        this.updateNodeTitle(node);
-                    });
-                    
-                    fieldContainer.appendChild(label);
-                    fieldContainer.appendChild(input);
-                    jsonEditor.appendChild(fieldContainer);
+                    // Update the node title when data changes
+                    this.updateNodeTitle(node);
                 });
                 
-                content.appendChild(jsonEditor);
-            }
+                fieldContainer.appendChild(label);
+                fieldContainer.appendChild(input);
+                jsonEditor.appendChild(fieldContainer);
+            });
+            
+            // Add toggle functionality
+            collapsibleHeader.addEventListener('click', () => {
+                arrow.classList.toggle('collapsed');
+                collapsibleContent.classList.toggle('expanded');
+            });
+            
+            // Assemble the collapsible
+            collapsibleContent.appendChild(jsonEditor);
+            collapsible.appendChild(collapsibleHeader);
+            collapsible.appendChild(collapsibleContent);
+            content.appendChild(collapsible);
 
             // Only add buttons for regular Inputs type
             if (node.type === 'Inputs') {
@@ -979,21 +1008,20 @@ COMPRADORES:
             const { name, surname, dni } = node.data;
             if (name || surname || dni) {
                 node.title = `${(surname || '').toUpperCase()} ${(name || '').toLowerCase()} - ${dni || ''}`.trim();
-                // Update the node's title in the DOM
                 const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
                 if (nodeEl) {
                     const titleEl = nodeEl.querySelector('.node-header span');
                     if (titleEl) {
                         titleEl.textContent = node.title;
+                        
+                        // Update the collapsible header text if empty
+                        const headerText = nodeEl.querySelector('.collapsible-header span:last-child');
+                        if (headerText && headerText.textContent === 'Input Fields') {
+                            headerText.textContent = `Input Fields - ${node.title}`;
+                        }
                     }
                 }
-            } else {
-                node.title = 'Empty';
             }
-        } else if (node.type === 'Outputs') {
-            node.title = `Output ${node.id}`;
-        } else {
-            node.title = `${node.type} ${node.id}`;
         }
     }
 }
