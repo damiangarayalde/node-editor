@@ -143,13 +143,13 @@ class NodeEditor extends EventEmitter {
             width: 375,
             height: type === 'DocBuilder' ? 150 : 100,
             type: type,
-            title: type === 'dni' || type === 'InputRaw' ? 'Empty' : `${type} ${nodeId}`,
+            title: type === 'dni' ? 'Empty' : `${type} ${nodeId}`,
             inputs: type === 'DocBuilder' ? [
                 { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
                 { id: `in_${nodeId}_comprador`, name: 'Comprador' }
             ] : [{ id: `in_${nodeId}`, name: 'Input' }],
             outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            data: (type === 'dni' || type === 'InputRaw') ? {
+            data:  type === 'dni'  ? {
                 name: '',
                 surname: '',
                 dateOfBirth: '',
