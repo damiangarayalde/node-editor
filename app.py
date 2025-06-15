@@ -1,184 +1,85 @@
-from flask import Flask, render_template, jsonify, request, send_from_directory
-from flask_cors import CORS
 import os
+from flask import Flask, render_template, send_from_directory
+from flask_cors import CORS
+from config import settings
+import logging
+from logging.handlers import RotatingFileHandler
 from openai import OpenAI
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__,
-            static_folder=os.path.abspath('static'),
-            template_folder=os.path.abspath('templates'))
-CORS(app)
-
-# Configure OpenAI with new client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Configure logging
 
 
-@app.route('/api/generate-template', methods=['POST'])
-def generate_template():
-    try:
-        data = request.get_json()
-        fields = data.get('fields', {})
+def setup_logging(app):
+    """Set up logging configuration"""
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
 
-        print("Received fields:", fields)  # Debug log
+    file_handler = RotatingFileHandler(
+        'logs/app.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
 
-        # Construct the prompt for OpenAI
-        prompt = f"""
-                    Generate a legal contract template in portuguese for a sale agreement.
-                    Use EXACTLY these placeholders for dynamic content:
-
-                    For vendors:
-                    {{{{#each vendedor}}}}
-                    - Name: {{{{this.name}}}}
-                    - Surname: {{{{this.surname}}}}
-                    - DNI: {{{{this.dni}}}}
-                    - Address: {{{{this.address}}}}
-                    {{{{/each}}}}
-
-                    For buyers:
-                    {{{{#each comprador}}}}
-                    - Name: {{{{this.name}}}}
-                    - Surname: {{{{this.surname}}}}
-                    - DNI: {{{{this.dni}}}}
-                    - Address: {{{{this.address}}}}
-                    {{{{/each}}}}
-
-                    Important:
-                    1. Keep all placeholder syntax exactly as shown above
-                    2. Generate a formal Spanish legal contract
-                    3. Include standard legal clauses for a sale agreement
-                    4. Ensure proper formatting and structure
-                    5. Use proper legal terminology in Spanish
-                    """
-
-        print("Using OpenAI key:", bool(client.api_key))  # Debug if key exists
-
-        try:
-            # Call OpenAI API with new syntax
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a legal document assistant that generates contract templates. Always maintain the exact placeholder syntax provided."
-                    },
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
-
-            template = response.choices[0].message.content
-            print("Generated template successfully")  # Debug log
-
-            return jsonify({
-                'status': 'success',
-                'template': template
-            })
-
-        except Exception as e:
-            # Debug OpenAI specific errors
-            print(f"OpenAI API error: {str(e)}")
-            return jsonify({
-                'status': 'error',
-                'message': f"OpenAI API error: {str(e)}"
-            }), 500
-
-    except Exception as e:
-        print(f"General error: {str(e)}")  # Debug general errors
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-# Serve static files from the root
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Application startup')
 
 
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory('static', path)
+def create_app():
+    """Application factory"""
+    app = Flask(__name__,
+                static_folder=os.path.abspath('static'),
+                template_folder=os.path.abspath('templates'))
 
+    # Load configuration
+    app.config.from_object(settings)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+    # Set maximum content length
+    app.config['MAX_CONTENT_LENGTH'] = settings.MAX_CONTENT_LENGTH
 
+    # Configure CORS
+    CORS(
+        app,
+        resources={
+            r"/api/*": {"origins": settings.CORS_ORIGINS}
+        }
+    )
 
-@app.route('/api/nodes', methods=['GET', 'POST'])
-def handle_nodes():
-    if request.method == 'GET':
-        # Return initial nodes with Input and Output types
-        return jsonify({
-            'nodes': [
-                {
-                    'id': 1,
-                    'x': 200,
-                    'y': 100,
-                    'width': 375,  # Increased from 250
-                    'height': 100,
-                    'type': 'dni',
-                    'title': 'Empty',
-                    'state': 'empty',  # Add initial state
-                    'inputs': [{'id': 'in_1', 'name': 'Input'}],
-                    'outputs': [{'id': 'out_1', 'name': 'Output'}],
-                    'data': {
-                        'name': '',
-                        'surname': '',
-                        'dateOfBirth': '',
-                        'dni': '',
-                        'address': ''
-                    }
-                },
-                {
-                    'id': 2,
-                    'x': 800,
-                    'y': 100,
-                    'width': 375,  # Increased from 200
-                    'height': 100,
-                    'type': 'DocBuilder',  # Changed from 'Outputs'
-                    'title': 'DocBuilder empty',  # Updated title
-                    'inputs': [
-                        {'id': 'in_2_vendedor', 'name': 'Vendedor'},
-                        {'id': 'in_2_comprador', 'name': 'Comprador'}
-                    ],
-                    'outputs': [{'id': 'out_2', 'name': 'Output'}]
-                }
-            ],
-            'connections': []
-        })
-    elif request.method == 'POST':
-        # Save node data
-        data = request.get_json()
-        print("Received nodes:", data.get('nodes', []))
-        print("Received connections:", data.get('connections', []))
-        return jsonify({'status': 'success'})
+    # Setup logging
+    setup_logging(app)
 
+    # Configure OpenAI with new client
+    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-@app.route('/api/test-openai', methods=['GET'])
-def test_openai():
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": "Say 'OpenAI is working!'"}
-            ]
-        )
-        return jsonify({
-            'status': 'success',
-            'message': response.choices[0].message.content
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    # Register blueprints
+    from routes.api import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Basic routes
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
+    @app.route('/static/<path:path>')
+    def serve_static(path):
+        return send_from_directory('static', path)
+
+    return app
 
 
 if __name__ == '__main__':
-    # Ensure the static and template folders exist
+    # Ensure required directories exist
     os.makedirs('static', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
 
-    # Run the app
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # Create and run the application
+    app = create_app()
+    app.run(
+        host=settings.HOST,
+        port=settings.PORT,
+        debug=settings.DEBUG
+    )
