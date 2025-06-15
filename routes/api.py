@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from services.openai_service import OpenAIService, OpenAIServiceError
+from services.nodes_service import NodesService, NodesServiceError
 from functools import wraps
 import logging
 
@@ -64,49 +65,41 @@ def generate_template():
 @api_bp.route('/nodes', methods=['GET', 'POST'])
 @handle_errors
 def handle_nodes():
+    """Handle node-related operations
+    
+    GET: Returns the default nodes configuration
+    POST: Saves the nodes configuration
+    """
     if request.method == 'GET':
-        # TODO: Move this to a nodes service
-        return jsonify({
-            'nodes': [
-                {
-                    'id': 1,
-                    'x': 200,
-                    'y': 100,
-                    'width': 375,
-                    'height': 100,
-                    'type': 'dni',
-                    'title': 'Empty',
-                    'state': 'empty',
-                    'inputs': [{'id': 'in_1', 'name': 'Input'}],
-                    'outputs': [{'id': 'out_1', 'name': 'Output'}],
-                    'data': {
-                        'name': '',
-                        'surname': '',
-                        'dateOfBirth': '',
-                        'dni': '',
-                        'address': ''
-                    }
-                },
-                {
-                    'id': 2,
-                    'x': 800,
-                    'y': 100,
-                    'width': 375,
-                    'height': 100,
-                    'type': 'DocBuilder',
-                    'title': 'DocBuilder empty',
-                    'inputs': [
-                        {'id': 'in_2_vendedor', 'name': 'Vendedor'},
-                        {'id': 'in_2_comprador', 'name': 'Comprador'}
-                    ],
-                    'outputs': [{'id': 'out_2', 'name': 'Output'}]
-                }
-            ],
-            'connections': []
-        })
+        try:
+            nodes_data = NodesService.get_default_nodes()
+            return jsonify(nodes_data)
+        except NodesServiceError as e:
+            logger.error(f"Error getting nodes: {str(e)}")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to load nodes configuration'
+            }), 500
     
     elif request.method == 'POST':
-        data = request.get_json()
-        logger.info(f"Received nodes: {data.get('nodes', [])}")
-        logger.info(f"Received connections: {data.get('connections', [])}")
-        return jsonify({'status': 'success'})
+        try:
+            data = request.get_json()
+            if not data or 'nodes' not in data:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Missing required nodes data'
+                }), 400
+                
+            NodesService.save_nodes(data)
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Nodes saved successfully'
+            })
+            
+        except NodesServiceError as e:
+            logger.error(f"Error saving nodes: {str(e)}")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to save nodes configuration'
+            }), 500
