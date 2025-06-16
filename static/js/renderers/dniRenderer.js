@@ -1,5 +1,5 @@
 // Renderer helper for DNI nodes
-import { NodeStates } from '../nodes.js';
+import { NodeStates, updateNodeTitle, updateNodeSubtitle } from '../nodes.js';
 
 export function renderDNINodeUI(node, editor, container) {
     // Collapsible section
@@ -73,13 +73,13 @@ function createJSONEditor(node, editor) {
         { key: 'address', label: 'Address' },
     ];
 
-    fields.forEach((f) => createField(f, node, jsonEditor, editor));
+    fields.forEach((f) => createField(f, node, jsonEditor));
 
     return jsonEditor;
 }
 
 // Helper to create individual form fields
-function createField(field, node, container, editor) {
+function createField(field, node, container) {
     const fieldContainer = document.createElement('div');
     fieldContainer.className = 'json-field';
 
@@ -95,8 +95,8 @@ function createField(field, node, container, editor) {
     input.addEventListener('input', (e) => {
         node.data = node.data || {};
         node.data[field.key] = e.target.value;
-        editor.updateNodeTitle(node);
-        editor.updateNodeSubtitle(node);
+        updateNodeTitle(node);
+        updateNodeSubtitle(node);
     });
 
     fieldContainer.appendChild(label);

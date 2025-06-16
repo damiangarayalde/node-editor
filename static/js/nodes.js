@@ -106,3 +106,38 @@ export function reviveNode(raw) {
             );
     }
 }
+
+// ---------------------------------------------------------------------------
+// UI-update helpers (moved here from app.js to decouple DOM logic from editor)
+// ---------------------------------------------------------------------------
+export function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// Refreshes the visible main title of a DNI node
+export function updateNodeTitle(node) {
+    if (node.type === 'dni' && node.data) {
+        const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+        if (nodeEl) {
+            const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
+            if (titleSpan) {
+                titleSpan.textContent = ` ${node.data.dni || 'sin datos del dni'}`;
+            }
+        }
+    }
+}
+
+// Refreshes the subtitle (surname + name) shown under the DNI title
+export function updateNodeSubtitle(node) {
+    if (node.type === 'dni' && node.data) {
+        const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+        if (nodeEl) {
+            const subtitle = nodeEl.querySelector('.node-subtitle');
+            if (subtitle) {
+                subtitle.textContent = node.data.surname || node.data.name
+                    ? `${(node.data.surname || '').toUpperCase()} ${capitalizeFirstLetter(node.data.name || '')}`
+                    : 'sin datos del apellido y nombre';
+            }
+        }
+    }
+}

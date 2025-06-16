@@ -878,36 +878,9 @@ class NodeGraphEditor extends EventEmitter {
         }
     }
 
-    capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-    }
-    // Add this to the NodeEditor class in app.js
-    updateNodeTitle(node) {
-        if (node.type === 'dni' && node.data) {
-            const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
-            if (nodeEl) {
-                const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
-                if (titleSpan) {
-                    titleSpan.textContent = ` ${node.data.dni || 'sin datos del dni'}`;
-                }
-            }
-        }
-    }
 
-    // Add new method for subtitle updates
-    updateNodeSubtitle(node) {
-        if (node.type === 'dni' && node.data) {
-            const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
-            if (nodeEl) {
-                const subtitle = nodeEl.querySelector('.node-subtitle');
-                if (subtitle) {
-                    subtitle.textContent = node.data.surname || node.data.name ? 
-                        `${(node.data.surname || '').toUpperCase()} ${this.capitalizeFirstLetter(node.data.name || '')}` : 
-                        'sin datos del apellido y nombre';
-                }
-            }
-        }
-   }
+    // Add this to the NodeEditor class in app.js
+
 
     updateDocBuilderState(node) {
         // Check if all inputs are connected
