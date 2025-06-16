@@ -35,10 +35,6 @@ class EventEmitter {
 }
 
 
-
-
-
-
 class NodeEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
     static createConnectionPath(x1, y1, x2, y2) {
@@ -375,74 +371,8 @@ class NodeEditor extends EventEmitter {
         container.appendChild(fieldContainer);
     }
 
-    createPhotoButtons(node) {
-        const container = document.createElement('div');
-        container.className = 'photo-capture-buttons';
-        
-        // Create front photo button
-        const frontPhotoBtn = document.createElement('button');
-        frontPhotoBtn.className = 'photo-capture-btn';
-        frontPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto frente DNI`;
-        frontPhotoBtn.onclick = (e) => {
-            e.stopPropagation();
-            console.log('Capture front photo for node:', node.id);
-        };
-        
-        // Create back photo button
-        const backPhotoBtn = document.createElement('button');
-        backPhotoBtn.className = 'photo-capture-btn';
-        backPhotoBtn.innerHTML = `<span class="icon">📸</span> Tomar foto dorso DNI`;
-        backPhotoBtn.onclick = (e) => {
-            e.stopPropagation();
-            console.log('Capture back photo for node:', node.id);
-        };
-        
-        container.appendChild(frontPhotoBtn);
-        container.appendChild(backPhotoBtn);
-        
-        return container;
-    }
 
-
-    createActionButtons(node) {
-        const container = document.createElement('div');
-        container.className = 'node-buttons';
-        container.style.display = 'flex';
-        container.style.gap = '8px';
-        container.style.padding = '8px';
-
-        const loadButton = document.createElement('button');
-        loadButton.textContent = 'Load';
-        loadButton.className = 'node-button';
-        loadButton.onclick = (e) => {
-            e.stopPropagation();
-            if (node.state === NodeStates.DNI.EMPTY) {
-                node.state = NodeStates.DNI.IMAGES_LOADED;
-                this.updateNodeDisplay(node);
-
-                // Show the validate button after loading
-                validateButton.style.display = 'block';
-            }
-        };
-
-        const validateButton = document.createElement('button');
-        validateButton.textContent = 'Validate';
-        validateButton.className = 'node-button';
-        validateButton.style.display = 'none'; // Initially hidden
-        validateButton.onclick = (e) => {
-            e.stopPropagation();
-            if (node.state === NodeStates.DNI.IMAGES_LOADED) {
-                node.state = NodeStates.DNI.VALIDATED;
-                this.updateNodeDisplay(node);
-            }
-        };
-
-        container.appendChild(loadButton);
-        container.appendChild(validateButton);
-
-        return container;
-    }
-
+    
     // Add method to update node display
     updateNodeDisplay(node) {
         const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
@@ -680,9 +610,7 @@ class NodeEditor extends EventEmitter {
             });
             
             this.updateConnections();
-            // Remove automatic text update
-            // this.updateOutputText(targetId).catch(console.error);
-            
+           
             this.emit('connectionCreated', { sourceId, targetId });
 
             // Update DocBuilder state if needed
@@ -864,15 +792,15 @@ class NodeEditor extends EventEmitter {
     getFallbackTemplate() {
         return `Contrato de compraventa:
 
-VENDEDORES:
-{{#each vendedor}}
-- {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
-{{/each}}
+                VENDEDORES:
+                {{#each vendedor}}
+                - {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
+                {{/each}}
 
-COMPRADORES:
-{{#each comprador}}
-- {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
-{{/each}}`;
+                COMPRADORES:
+                {{#each comprador}}
+                - {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
+                {{/each}}`;
     }
 
     // Step 3: Replace placeholders with actual values
