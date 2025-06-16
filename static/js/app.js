@@ -290,66 +290,9 @@ class NodeGraphEditor extends EventEmitter {
     }
 
 
-    createCollapsibleSection(node) {
-        const collapsible = document.createElement('div');
-        collapsible.className = 'collapsible';
-        
-        // Create header
-        const collapsibleHeader = document.createElement('div');
-        collapsibleHeader.className = 'collapsible-header';
-        
-        const arrow = document.createElement('span');
-        arrow.className = 'collapsible-arrow';
-        arrow.textContent = '▼';
-        
-        const headerText = document.createElement('span');
-        headerText.textContent = 'Info';
-        
-        collapsibleHeader.appendChild(arrow);
-        collapsibleHeader.appendChild(headerText);
-        
-        // Create content
-        const collapsibleContent = document.createElement('div');
-        collapsibleContent.className = 'collapsible-content';
-        
-        // Add JSON editor
-        const jsonEditor = this.createJSONEditor(node);
-        collapsibleContent.appendChild(jsonEditor);
-        
-        // Add toggle functionality
-        collapsibleHeader.addEventListener('click', () => {
-            arrow.classList.toggle('collapsed');
-            collapsibleContent.classList.toggle('expanded');
-        });
-        
-        // Assemble
-        collapsible.appendChild(collapsibleHeader);
-        collapsible.appendChild(collapsibleContent);
-        
-        return collapsible;
-    }
-
-    createJSONEditor(node) {
-        const jsonEditor = document.createElement('div');
-        jsonEditor.className = 'json-editor';
-        
-        const fields = [
-            { key: 'name', label: 'Name' },
-            { key: 'surname', label: 'Surname' },
-            { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-            { key: 'dni', label: 'DNI' },
-            { key: 'address', label: 'Address' }
-        ];
-    
-        fields.forEach(field => this.createField(field, node, jsonEditor));
-        
-        return jsonEditor;
-    }
-
     createField(field, node, container) {
         const fieldContainer = document.createElement('div');
         fieldContainer.className = 'json-field';
-        
         const label = document.createElement('label');
         label.textContent = field.label;
         label.className = 'json-label';
@@ -486,16 +429,6 @@ class NodeGraphEditor extends EventEmitter {
     
     updateTempConnection(e) {
         if (!this.connectionStart) return;
-        
-        // ---
-        // const sourceRect = sourceConnector.getBoundingClientRect();
-        // const editorRect = this.editor.getBoundingClientRect();
-
-        // // Calculate center points of the connector circles
-        // const x1 = sourceRect.left - editorRect.left + sourceRect.width ;
-        // const y1 = sourceRect.top + (sourceRect.height / 2) - editorRect.top;
-      
-        
         
         const editorRect = this.editor.getBoundingClientRect();
         const x1 = this.connectionStart.x;

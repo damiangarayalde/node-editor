@@ -1,24 +1,84 @@
 // Renderer helper for DNI nodes
 import { NodeStates } from '../nodes.js';
+
 export function renderDNINodeUI(node, editor, container) {
-    // Collapsible info section (JSON form)
-    const collapsible = editor.createCollapsibleSection(node);
+    // Collapsible section
+    const collapsible = createCollapsibleSection(node, editor);
     container.appendChild(collapsible);
 
-    // Photo capture buttons (front / back)
+    // Photo buttons
     const photoButtons = createPhotoButtons(node, editor);
     container.appendChild(photoButtons);
 
-    // Action buttons (load / validate)
+    // Action buttons
     const actionButtons = createActionButtons(node, editor);
     container.appendChild(actionButtons);
 
-    // Inputs / outputs
+    // IO connectors
     const ioContainer = editor.createIOContainer(node);
     container.appendChild(ioContainer);
 }
 
+
+
+
+
 // -------------------- Helper builders --------------------
+// Collapsible section and JSON editor
+function createCollapsibleSection(node, editor) {
+    const collapsible = document.createElement('div');
+    collapsible.className = 'collapsible';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'collapsible-header';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'collapsible-arrow';
+    arrow.textContent = '▼';
+
+    const headerText = document.createElement('span');
+    headerText.textContent = 'Info';
+
+    header.appendChild(arrow);
+    header.appendChild(headerText);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'collapsible-content';
+
+    const jsonEditor = createJSONEditor(node, editor);
+    content.appendChild(jsonEditor);
+
+    header.addEventListener('click', () => {
+        arrow.classList.toggle('collapsed');
+        content.classList.toggle('expanded');
+    });
+
+    collapsible.appendChild(header);
+    collapsible.appendChild(content);
+
+    return collapsible;
+}
+
+function createJSONEditor(node, editor) {
+    const jsonEditor = document.createElement('div');
+    jsonEditor.className = 'json-editor';
+
+    const fields = [
+        { key: 'name', label: 'Name' },
+        { key: 'surname', label: 'Surname' },
+        { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+        { key: 'dni', label: 'DNI' },
+        { key: 'address', label: 'Address' },
+    ];
+
+    fields.forEach((f) => editor.createField(f, node, jsonEditor));
+
+    return jsonEditor;
+}
+
+// Existing helper builders
 function createPhotoButtons(node, editor) {
     const container = document.createElement('div');
     container.className = 'photo-capture-buttons';
