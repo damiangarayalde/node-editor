@@ -47,6 +47,9 @@ export class BaseNode {
 // ---------------------------------------------------------------------------
 // DNI node – collects DNI data, images, etc.
 // ---------------------------------------------------------------------------
+import { renderDNINodeUI } from './renderers/dniRenderer.js';
+import { renderDocBuilderNodeUI } from './renderers/docBuilderRenderer.js';
+
 export class DNINode extends BaseNode {
     constructor(id, x, y) {
         super(id, x, y, 'dni', 'Empty');
@@ -63,7 +66,7 @@ export class DNINode extends BaseNode {
     }
 
     renderContent(editor, container) {
-        editor.renderDNINode(this, container);
+        renderDNINodeUI(this, editor, container);
     }
 }
 
@@ -82,6 +85,6 @@ export class DocBuilderNode extends BaseNode {
     }
 
     renderContent(editor, container) {
-        editor.renderDocBuilderNode(this, container);
+        renderDocBuilderNodeUI(this, editor, container);
     }
 }

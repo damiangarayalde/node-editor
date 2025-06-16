@@ -1,4 +1,6 @@
 import { NodeStates, BaseNode, DNINode, DocBuilderNode } from './nodes.js';
+import { renderDNINodeUI } from './renderers/dniRenderer.js';
+import { renderDocBuilderNodeUI } from './renderers/docBuilderRenderer.js';
 
 class EventEmitter {
     constructor() {
@@ -188,10 +190,10 @@ class NodeEditor extends EventEmitter {
         } else {
             switch (node.type) {
                 case 'dni':
-                    this.renderDNINode(node, content);
+                    renderDNINodeUI(node, this, content);
                     break;
                 case 'DocBuilder':
-                    this.renderDocBuilderNode(node, content);
+                    renderDocBuilderNodeUI(node, this, content);
                     break;
                 default:
                     this.renderDefaultNode(node, content);
