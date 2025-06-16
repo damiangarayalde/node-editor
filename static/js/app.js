@@ -48,6 +48,53 @@ const NodeStates = {
     }
 };
 
+// ------------------------------------------------------------
+// Node class hierarchy (encapsulates shared node logic)
+// ------------------------------------------------------------
+class BaseNode {
+    constructor(id, x, y, type = 'default', title = '', width = 375, height = 100) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.type = type;
+        this.title = title;
+        this.state = null;
+        this.inputs = [];
+        this.outputs = [];
+        this.data = null;
+    }
+}
+
+class DNINode extends BaseNode {
+    constructor(id, x, y) {
+        super(id, x, y, 'dni', 'Empty');
+        this.state = NodeStates.DNI.EMPTY;
+        this.inputs = [{ id: `in_${id}`, name: 'Input' }];
+        this.outputs = [{ id: `out_${id}`, name: 'Output' }];
+        this.data = {
+            name: '',
+            surname: '',
+            dateOfBirth: '',
+            dni: '',
+            address: ''
+        };
+    }
+}
+
+class DocBuilderNode extends BaseNode {
+    constructor(id, x, y) {
+        super(id, x, y, 'DocBuilder', 'DocBuilder empty', 375, 150);
+        this.state = NodeStates.DOC_BUILDER.DISCONNECTED;
+        this.inputs = [
+            { id: `in_${id}_vendedor`, name: 'Vendedor' },
+            { id: `in_${id}_comprador`, name: 'Comprador' }
+        ];
+        this.outputs = [{ id: `out_${id}`, name: 'Output' }];
+    }
+}
+
 class NodeEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
     static createConnectionPath(x1, y1, x2, y2) {
@@ -152,30 +199,20 @@ class NodeEditor extends EventEmitter {
     // Update the addNode method to include default JSON data
     addNode(x = 100, y = 100, type = 'default') {
         const nodeId = this.nextNodeId++;
-        const node = {
-            id: nodeId,
-            x,
-            y,
-            width: 375,
-            height: type === 'DocBuilder' ? 150 : 100,
-            type: type,
-            title: type === 'dni' ? 'Empty' : `${type} ${nodeId}`,
-            // Add initial state based on node type
-            state: type === 'dni' ? NodeStates.DNI.EMPTY : 
-                   type === 'DocBuilder' ? NodeStates.DOC_BUILDER.DISCONNECTED : null,
-            inputs: type === 'DocBuilder' ? [
-                { id: `in_${nodeId}_vendedor`, name: 'Vendedor' },
-                { id: `in_${nodeId}_comprador`, name: 'Comprador' }
-            ] : [{ id: `in_${nodeId}`, name: 'Input' }],
-            outputs: [{ id: `out_${nodeId}`, name: 'Output' }],
-            data: type === 'dni' ? {
-                name: '',
-                surname: '',
-                dateOfBirth: '',
-                dni: '',
-                address: ''
-            } : null
-        };
+        let node;
+        switch (type) {
+            case 'dni':
+                node = new DNINode(nodeId, x, y);
+                break;
+            case 'DocBuilder':
+                node = new DocBuilderNode(nodeId, x, y);
+                break;
+            default:
+                node = new BaseNode(nodeId, x, y, type, `${type} ${nodeId}`);
+                node.inputs = [{ id: `in_${nodeId}`, name: 'Input' }];
+                node.outputs = [{ id: `out_${nodeId}`, name: 'Output' }];
+        }
+
         
         this.nodes.push(node);
         this.renderNode(node);
