@@ -1,3 +1,5 @@
+import { NodeStates } from '../nodes.js';
+
 // Renderer helper for DocBuilder nodes
 export function renderDocBuilderNodeUI(node, editor, container) {
     // Textarea to show generated document
@@ -122,38 +124,59 @@ export function getInputFields(nodes, connections, outputNode) {
 }
 
 // Update the output text for a DocBuilder node
+export function updateDocBuilderState(node, connections) {
+    // Check if all inputs are connected
+    const allInputsConnected = node.inputs.every(input =>
+        connections.some(conn => conn.target === input.id)
+    );
+    
+    if (!allInputsConnected) {
+        node.state = NodeStates.DOC_BUILDER.DISCONNECTED;
+    } else if (node.state === NodeStates.DOC_BUILDER.DISCONNECTED) {
+        node.state = NodeStates.DOC_BUILDER.INPUTS_CONNECTED;
+    }
+    
+    // Update the node display
+    const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+    if (nodeEl) {
+        const titleSpan = nodeEl.querySelector('.node-title-main span');
+        if (titleSpan) {
+            titleSpan.textContent = `${node.title} (${node.state})`;
+        }
+    }
+}
+
 export async function updateOutputText(targetId, editor) {
     const outputNode = editor.nodes.find(node => {
         return node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId);
     });
     
-    if (!outputNode) return;
-    
-    const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
-    if (!nodeEl) return;
-    
-    const textarea = nodeEl.querySelector('.node-textarea');
-    if (!textarea) return;
-    
-    try {
-        // Get the fields
-        const fields = getInputFields(editor.nodes, editor.connections, outputNode);
+    if (outputNode) {
+        const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
+        const textarea = nodeEl.querySelector('.node-textarea');
         
-        // Get the LLM-generated template and replace values
-        const template = await getTemplateText(fields);
-        const finalText = replaceFieldValues(template, fields);
-        
-        // Create the output div
-        const textDiv = document.createElement('div');
-        textDiv.className = 'node-textarea';
-        textDiv.contentEditable = true;
-        textDiv.style.whiteSpace = 'pre-wrap';
-        textDiv.innerHTML = finalText;
-        
-        // Replace the old textarea
-        textarea.parentNode.replaceChild(textDiv, textarea);
-        
-    } catch (error) {
-        console.error('Error updating output text:', error);
+        if (textarea) {
+            try {
+                // Get the fields
+                const fields = getInputFields(editor.nodes, editor.connections, outputNode);
+                
+                // Get the LLM-generated template and replace values
+                const template = await getTemplateText(fields);
+                const finalText = replaceFieldValues(template, fields);
+                
+                // Create the output div
+                const textDiv = document.createElement('div');
+                textDiv.className = 'node-textarea';
+                textDiv.contentEditable = true;
+                textDiv.style.whiteSpace = 'pre-wrap';
+                textDiv.innerHTML = finalText;
+                
+                // Replace the old textarea
+                textarea.parentNode.replaceChild(textDiv, textarea);
+                
+            } catch (error) {
+                console.error('Error updating output text:', error);
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 import { NodeStates, BaseNode, DNINode, DocBuilderNode, reviveNode } from './nodes.js';
-import { updateOutputText, getTemplateText, replaceFieldValues, getInputFields, getFallbackTemplate } from './renderers/docBuilderRenderer.js';
+import { updateOutputText, getTemplateText, replaceFieldValues, getInputFields, getFallbackTemplate, updateDocBuilderState } from './renderers/docBuilderRenderer.js';
 
 class EventEmitter {
     constructor() {
@@ -524,7 +524,7 @@ class NodeGraphEditor extends EventEmitter {
                 node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId)
             );
             if (targetNode) {
-                this.updateDocBuilderState(targetNode);
+                updateDocBuilderState(targetNode, this.connections);
             }
         }
    }
@@ -631,7 +631,6 @@ class NodeGraphEditor extends EventEmitter {
         return updateOutputText(targetId, this);
     }
     
-    // ... (rest of the code remains the same)
     deleteNode(nodeId) {
         // Find the node to be deleted
         const node = this.nodes.find(n => n.id === nodeId);
@@ -737,28 +736,9 @@ class NodeGraphEditor extends EventEmitter {
                 node.type === 'DocBuilder' && node.inputs.some(input => input.id === connection.target)
             );
             if (targetNode) {
-                this.updateDocBuilderState(targetNode);
+                updateDocBuilderState(targetNode, this.connections);
             }
         }
-    }
-
-
-    // Add this to the NodeEditor class in app.js
-
-
-    updateDocBuilderState(node) {
-        // Check if all inputs are connected
-        const allInputsConnected = node.inputs.every(input =>
-            this.connections.some(conn => conn.target === input.id)
-        );
-        
-        if (!allInputsConnected) {
-            node.state = NodeStates.DOC_BUILDER.DISCONNECTED;
-        } else if (node.state === NodeStates.DOC_BUILDER.DISCONNECTED) {
-            node.state = NodeStates.DOC_BUILDER.INPUTS_CONNECTED;
-        }
-        
-        this.updateNodeDisplay(node);
     }
 
   
