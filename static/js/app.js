@@ -1,5 +1,5 @@
 import { NodeStates, BaseNode, DNINode, DocBuilderNode, reviveNode } from './nodes.js';
-import { getTemplateText, replaceFieldValues } from './renderers/docBuilderRenderer.js';
+import { updateOutputText, getTemplateText, replaceFieldValues, getInputFields, getFallbackTemplate } from './renderers/docBuilderRenderer.js';
 
 class EventEmitter {
     constructor() {
@@ -626,146 +626,12 @@ class NodeGraphEditor extends EventEmitter {
         }
     }
 
-    // to docbuilder
-    getInputFields(outputNode) {
-        const fields = {
-            vendedor: [],
-            comprador: []
-        };
-        
-        // Get all Vendedor connections
-        const vendedorConnections = this.connections.filter(conn => 
-            conn.target === outputNode.inputs.find(i => i.name === 'Vendedor').id
-        );
-        
-        // Get all Comprador connections
-        const compradorConnections = this.connections.filter(conn => 
-            conn.target === outputNode.inputs.find(i => i.name === 'Comprador').id
-        );
-        
-        // Process Vendedor connections
-        vendedorConnections.forEach(conn => {
-            const vendedorNode = this.nodes.find(node => 
-                node.outputs.some(output => output.id === conn.source)
-            );
-            if (vendedorNode?.data) {
-                fields.vendedor.push(vendedorNode.data);
-            }
-        });
-        
-        // Process Comprador connections
-        compradorConnections.forEach(conn => {
-            const compradorNode = this.nodes.find(node => 
-                node.outputs.some(output => output.id === conn.source)
-            );
-            if (compradorNode?.data) {
-                fields.comprador.push(compradorNode.data);
-            }
-        });
-        
-        return fields;
-    }
 
-    // Update getTemplateText to be async
-    async getTemplateText(fields) {
-        try {
-            console.log('Sending fields to API:', fields);  // Debug log
-            
-            const response = await fetch('/api/generate-template', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ fields })
-            });
-            
-            const data = await response.json();
-            console.log('API response:', data);  // Debug log
-            
-            if (data.status === 'success') {
-                return data.template;
-            } else {
-                console.error('Error from API:', data.message);
-                return this.getFallbackTemplate();
-            }
-        } catch (error) {
-            console.error('Error calling template API:', error);
-            return this.getFallbackTemplate();
-        }
-    }
-
-    // Add fallback template method
-    getFallbackTemplate() {
-        return `Contrato de compraventa:
-
-                VENDEDORES:
-                {{#each vendedor}}
-                - {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
-                {{/each}}
-
-                COMPRADORES:
-                {{#each comprador}}
-                - {{this.name}} {{this.surname}}, con DNI {{this.dni}}, domiciliado en {{this.address}}
-                {{/each}}`;
-    }
-
-    // Step 3: Replace placeholders with actual values
-    replaceFieldValues(template, fields) {
-        let text = template;
-        
-        // Handle each loops for multiple parties
-        text = text.replace(/\{\{#each ([^}]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, path, template) => {
-            const array = path.split('.').reduce((acc, part) => acc?.[part], fields) || [];
-            return array.map(item => {
-                let result = template;
-                // Replace individual fields
-                result = result.replace(/\{\{this\.([^}]+)\}\}/g, (m, field) => {
-                    const value = item[field] || 'No disponible';
-                    return `<span class="highlight">${value}</span>`;
-                });
-                return result;
-            }).join('\n');
-        });
-        
-        return text;
-    }
-
-    async updateOutputText(targetId) {
-        const outputNode = this.nodes.find(node => {
-            return node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId);
-        });
-        
-        if (outputNode) {
-            const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
-            const textarea = nodeEl.querySelector('.node-textarea');
-            
-            if (textarea) {
-                try {
-                    // Get the fields
-                    const fields = this.getInputFields(outputNode);
-                    
-                    // Get the LLM-generated template and replace values
-                    const template = await getTemplateText(fields);
-                    const finalText = replaceFieldValues(template, fields);
-                    
-                    // Create the output div
-                    const textDiv = document.createElement('div');
-                    textDiv.className = 'node-textarea';
-                    textDiv.contentEditable = true;
-                    textDiv.style.whiteSpace = 'pre-wrap';
-                    textDiv.innerHTML = finalText;
-                    
-                    // Replace the old textarea
-                    textarea.parentNode.replaceChild(textDiv, textarea);
-                    
-                } catch (error) {
-                    console.error('Error updating output text:', error);
-                }
-            }
-        }
+    async updateOutputTextt(targetId) {
+        return updateOutputText(targetId, this);
     }
     
-    // Add this method to NodeEditor class
+    // ... (rest of the code remains the same)
     deleteNode(nodeId) {
         // Find the node to be deleted
         const node = this.nodes.find(n => n.id === nodeId);
@@ -806,7 +672,7 @@ class NodeGraphEditor extends EventEmitter {
             .filter(n => n.type === 'Outputs')
             .forEach(outputNode => {
                 outputNode.inputs.forEach(input => {
-                    this.updateOutputText(input.id);
+                    this.updateOutputTextt(input.id);
                 });
             });
     }

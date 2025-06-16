@@ -80,3 +80,80 @@ export async function getTemplateText(fields) {
         return getFallbackTemplate();
     }
 }
+
+// Get input fields for a DocBuilder node
+export function getInputFields(nodes, connections, outputNode) {
+    const fields = {
+        vendedor: [],
+        comprador: []
+    };
+    
+    // Get all Vendedor connections
+    const vendedorConnections = connections.filter(conn => 
+        conn.target === outputNode.inputs.find(i => i.name === 'Vendedor')?.id
+    );
+    
+    // Get all Comprador connections
+    const compradorConnections = connections.filter(conn => 
+        conn.target === outputNode.inputs.find(i => i.name === 'Comprador')?.id
+    );
+    
+    // Process Vendedor connections
+    vendedorConnections.forEach(conn => {
+        const vendedorNode = nodes.find(node => 
+            node.outputs.some(output => output.id === conn.source)
+        );
+        if (vendedorNode?.data) {
+            fields.vendedor.push(vendedorNode.data);
+        }
+    });
+    
+    // Process Comprador connections
+    compradorConnections.forEach(conn => {
+        const compradorNode = nodes.find(node => 
+            node.outputs.some(output => output.id === conn.source)
+        );
+        if (compradorNode?.data) {
+            fields.comprador.push(compradorNode.data);
+        }
+    });
+    
+    return fields;
+}
+
+// Update the output text for a DocBuilder node
+export async function updateOutputText(targetId, editor) {
+    const outputNode = editor.nodes.find(node => {
+        return node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId);
+    });
+    
+    if (!outputNode) return;
+    
+    const nodeEl = document.querySelector(`[data-node-id="${outputNode.id}"]`);
+    if (!nodeEl) return;
+    
+    const textarea = nodeEl.querySelector('.node-textarea');
+    if (!textarea) return;
+    
+    try {
+        // Get the fields
+        const fields = getInputFields(editor.nodes, editor.connections, outputNode);
+        
+        // Get the LLM-generated template and replace values
+        const template = await getTemplateText(fields);
+        const finalText = replaceFieldValues(template, fields);
+        
+        // Create the output div
+        const textDiv = document.createElement('div');
+        textDiv.className = 'node-textarea';
+        textDiv.contentEditable = true;
+        textDiv.style.whiteSpace = 'pre-wrap';
+        textDiv.innerHTML = finalText;
+        
+        // Replace the old textarea
+        textarea.parentNode.replaceChild(textDiv, textarea);
+        
+    } catch (error) {
+        console.error('Error updating output text:', error);
+    }
+}
