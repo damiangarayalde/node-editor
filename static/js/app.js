@@ -289,32 +289,6 @@ class NodeGraphEditor extends EventEmitter {
         });
     }
 
-
-    createField(field, node, container) {
-        const fieldContainer = document.createElement('div');
-        fieldContainer.className = 'json-field';
-        const label = document.createElement('label');
-        label.textContent = field.label;
-        label.className = 'json-label';
-        
-        const input = document.createElement('input');
-        input.type = field.type || 'text';
-        input.value = node.data?.[field.key] || '';
-        input.className = 'json-input';
-        
-        input.addEventListener('input', (e) => {
-            node.data = node.data || {};
-            node.data[field.key] = e.target.value;
-            this.updateNodeTitle(node);
-            this.updateNodeSubtitle(node);
-        });
-        
-        fieldContainer.appendChild(label);
-        fieldContainer.appendChild(input);
-        container.appendChild(fieldContainer);
-    }
-
-
     
     // Add method to update node display
     updateNodeDisplay(node) {

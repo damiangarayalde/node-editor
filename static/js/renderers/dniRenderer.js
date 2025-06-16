@@ -7,7 +7,7 @@ export function renderDNINodeUI(node, editor, container) {
     container.appendChild(collapsible);
 
     // Photo buttons
-    const photoButtons = createPhotoButtons(node, editor);
+    const photoButtons = createPhotoButtons(node);
     container.appendChild(photoButtons);
 
     // Action buttons
@@ -73,13 +73,39 @@ function createJSONEditor(node, editor) {
         { key: 'address', label: 'Address' },
     ];
 
-    fields.forEach((f) => editor.createField(f, node, jsonEditor));
+    fields.forEach((f) => createField(f, node, jsonEditor, editor));
 
     return jsonEditor;
 }
 
+// Helper to create individual form fields
+function createField(field, node, container, editor) {
+    const fieldContainer = document.createElement('div');
+    fieldContainer.className = 'json-field';
+
+    const label = document.createElement('label');
+    label.textContent = field.label;
+    label.className = 'json-label';
+
+    const input = document.createElement('input');
+    input.type = field.type || 'text';
+    input.value = node.data?.[field.key] || '';
+    input.className = 'json-input';
+
+    input.addEventListener('input', (e) => {
+        node.data = node.data || {};
+        node.data[field.key] = e.target.value;
+        editor.updateNodeTitle(node);
+        editor.updateNodeSubtitle(node);
+    });
+
+    fieldContainer.appendChild(label);
+    fieldContainer.appendChild(input);
+    container.appendChild(fieldContainer);
+}
+
 // Existing helper builders
-function createPhotoButtons(node, editor) {
+function createPhotoButtons(node) {
     const container = document.createElement('div');
     container.className = 'photo-capture-buttons';
 
