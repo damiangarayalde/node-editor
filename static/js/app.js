@@ -1,3 +1,5 @@
+import { NodeStates, BaseNode, DNINode, DocBuilderNode } from './nodes.js';
+
 class EventEmitter {
     constructor() {
         this.events = {};
@@ -32,80 +34,10 @@ class EventEmitter {
     }
 }
 
-// Add NodeStates at the top of the file
-const NodeStates = {
-    DNI: {
-        EMPTY: 'empty',
-        IMAGES_LOADED: 'images_loaded',
-        DATA_EXTRACTED: 'data_extracted',
-        VALIDATED: 'validated'
-    },
-    DOC_BUILDER: {
-        DISCONNECTED: 'disconnected',
-        INPUTS_CONNECTED: 'inputs_connected',
-        DOCUMENT_BUILT: 'document_built',
-        VALIDATED: 'validated'
-    }
-};
 
-// ------------------------------------------------------------
-// Node class hierarchy (encapsulates shared node logic)
-// ------------------------------------------------------------
-class BaseNode {
-    constructor(id, x, y, type = 'default', title = '', width = 375, height = 100) {
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.type = type;
-        this.title = title;
-        this.state = null;
-        this.inputs = [];
-        this.outputs = [];
-        this.data = null;
-    }
 
-    // Default renderer (subclasses can override)
-    renderContent(editor, container) {
-        editor.renderDefaultNode(this, container);
-    }
 
-}
 
-class DNINode extends BaseNode {
-    constructor(id, x, y) {
-        super(id, x, y, 'dni', 'Empty');
-        this.state = NodeStates.DNI.EMPTY;
-        this.inputs = [{ id: `in_${id}`, name: 'Input' }];
-        this.outputs = [{ id: `out_${id}`, name: 'Output' }];
-        this.data = {
-            name: '',
-            surname: '',
-            dateOfBirth: '',
-            dni: '',
-            address: ''
-        };
-    }
-    renderContent(editor, container) {
-        editor.renderDNINode(this, container);
-    }
-}
-
-class DocBuilderNode extends BaseNode {
-    constructor(id, x, y) {
-        super(id, x, y, 'DocBuilder', 'DocBuilder empty', 375, 150);
-        this.state = NodeStates.DOC_BUILDER.DISCONNECTED;
-        this.inputs = [
-            { id: `in_${id}_vendedor`, name: 'Vendedor' },
-            { id: `in_${id}_comprador`, name: 'Comprador' }
-        ];
-        this.outputs = [{ id: `out_${id}`, name: 'Output' }];
-    }
-    renderContent(editor, container) {
-        editor.renderDocBuilderNode(this, container);
-    }
-}
 
 class NodeEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
