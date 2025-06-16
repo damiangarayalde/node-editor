@@ -35,7 +35,7 @@ class EventEmitter {
 }
 
 
-class NodeEditor extends EventEmitter {
+class NodeGraphEditor extends EventEmitter {
     // Generate a smooth SVG path for connections
     static createConnectionPath(x1, y1, x2, y2) {
         const deltaX = Math.abs(x2 - x1);
@@ -504,7 +504,7 @@ class NodeEditor extends EventEmitter {
         const y2 = e.clientY - editorRect.top;
         
         // Update the temporary connection path
-        this.tempConnection.setAttribute('d', NodeEditor.createConnectionPath(x1, y1, x2, y2));
+        this.tempConnection.setAttribute('d', NodeGraphEditor.createConnectionPath(x1, y1, x2, y2));
         
         // Check if we're hovering over a valid connector
         const targetEl = document.elementFromPoint(e.clientX, e.clientY);
@@ -656,7 +656,7 @@ class NodeEditor extends EventEmitter {
 
                 // Create path for the connection
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', NodeEditor.createConnectionPath(x1, y1, x2, y2));
+                path.setAttribute('d', NodeGraphEditor.createConnectionPath(x1, y1, x2, y2));
                 path.classList.add('connection');
                 path.dataset.connectionId = conn.id;
                 
@@ -1050,7 +1050,7 @@ class NodeEditor extends EventEmitter {
 // Initialize the editor when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing editor...');
-    window.nodeEditor = new NodeEditor();
+    window.nodeGraphEditor = new NodeGraphEditor();
     console.log('Editor initialized');
 }
 
