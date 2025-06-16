@@ -1,6 +1,4 @@
-import { NodeStates, BaseNode, DNINode, DocBuilderNode } from './nodes.js';
-import { renderDNINodeUI } from './renderers/dniRenderer.js';
-import { renderDocBuilderNodeUI } from './renderers/docBuilderRenderer.js';
+import { NodeStates, BaseNode, DNINode, DocBuilderNode, reviveNode } from './nodes.js';
 
 class EventEmitter {
     constructor() {
@@ -68,7 +66,7 @@ class NodeEditor extends EventEmitter {
         this.offsetX = 0;
         this.offsetY = 0;
         this.nextNodeId = 1;
-        this.selectedConnection = null; // Add this line
+        this.selectedConnection = null; 
         
         this.init();
     }
@@ -183,22 +181,8 @@ class NodeEditor extends EventEmitter {
         const content = document.createElement('div');
         content.className = 'node-content';
 
-        // Delegate content rendering to node instance if present. If not, fallback by type so
-        // nodes loaded from persistence (plain JSON objects) still display correctly.
-        if (typeof node.renderContent === 'function') {
-            node.renderContent(this, content);
-        } else {
-            switch (node.type) {
-                case 'dni':
-                    renderDNINodeUI(node, this, content);
-                    break;
-                case 'DocBuilder':
-                    renderDocBuilderNodeUI(node, this, content);
-                    break;
-                default:
-                    this.renderDefaultNode(node, content);
-            }
-        }
+        // Render node's UI via its own renderer
+        node.renderContent(this, content);
         
         nodeEl.appendChild(header);
         nodeEl.appendChild(content);
@@ -238,43 +222,9 @@ class NodeEditor extends EventEmitter {
         return header;
     }
 
-    renderDNINode(node, content) {
-        
-        // Create DNI specific content
-        // Create and add collapsible section with fields
-        const collapsible = this.createCollapsibleSection(node);
-        content.appendChild(collapsible);
-
-        // Add photo capture buttons
-        const photoButtons = this.createPhotoButtons(node);
-        content.appendChild(photoButtons);
-
-        const actionButtons = this.createActionButtons(node);
-        content.appendChild(actionButtons);        
 
 
-        // Add inputs/outputs
-        const ioContainer = this.createIOContainer(node);
-        content.appendChild(ioContainer);
-    }
 
-    renderDocBuilderNode(node, content) {
-        // Create text area for document builder
-        const textContainer = document.createElement('div');
-        textContainer.className = 'node-text-container';
-        
-        const textarea = document.createElement('textarea');
-        textarea.className = 'node-textarea';
-        textarea.placeholder = 'Generated document will appear here...';
-        textarea.readOnly = true;
-        
-        textContainer.appendChild(textarea);
-        content.appendChild(textContainer);
-        
-        // Add inputs/outputs
-        const ioContainer = this.createIOContainer(node);
-        content.appendChild(ioContainer);
-    }
 
     renderDefaultNode(node, content) {
         // Add inputs/outputs for default node type
@@ -802,7 +752,7 @@ class NodeEditor extends EventEmitter {
             // Clear existing nodes
             this.nodesContainer.innerHTML = '';
             
-            this.nodes = data.nodes || [];
+            this.nodes = (data.nodes || []).map(reviveNode);
             this.connections = data.connections || [];
             
             // Fix the syntax error and update nextNodeId

@@ -88,3 +88,21 @@ export class DocBuilderNode extends BaseNode {
         renderDocBuilderNodeUI(this, editor, container);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Helper to revive plain JSON objects into proper class instances when loading
+// from the backend. Keeps app.js free from node-type switch statements.
+// ---------------------------------------------------------------------------
+export function reviveNode(raw) {
+    switch (raw.type) {
+        case 'dni':
+            return Object.assign(new DNINode(raw.id, raw.x, raw.y), raw);
+        case 'DocBuilder':
+            return Object.assign(new DocBuilderNode(raw.id, raw.x, raw.y), raw);
+        default:
+            return Object.assign(
+                new BaseNode(raw.id, raw.x, raw.y, raw.type, raw.title),
+                raw,
+            );
+    }
+}
