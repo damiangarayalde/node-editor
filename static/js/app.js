@@ -487,10 +487,20 @@ class NodeEditor extends EventEmitter {
     updateTempConnection(e) {
         if (!this.connectionStart) return;
         
+        // ---
+        // const sourceRect = sourceConnector.getBoundingClientRect();
+        // const editorRect = this.editor.getBoundingClientRect();
+
+        // // Calculate center points of the connector circles
+        // const x1 = sourceRect.left - editorRect.left + sourceRect.width ;
+        // const y1 = sourceRect.top + (sourceRect.height / 2) - editorRect.top;
+      
+        
+        
         const editorRect = this.editor.getBoundingClientRect();
         const x1 = this.connectionStart.x;
-        const y1 = this.connectionStart.y;
-        const x2 = e.clientX; //- editorRect.left;
+        const y1 = this.connectionStart.y - editorRect.top;
+        const x2 = e.clientX; 
         const y2 = e.clientY - editorRect.top;
         
         // Update the temporary connection path
