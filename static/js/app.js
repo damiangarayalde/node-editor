@@ -289,18 +289,6 @@ class NodeGraphEditor extends EventEmitter {
         });
     }
 
-    
-    // Add method to update node display
-    updateNodeDisplay(node) {
-        const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
-        if (!nodeEl) return;
-        
-        const titleSpan = nodeEl.querySelector('.node-title-main span:last-child');
-        if (titleSpan && node.type === 'dni') {
-            titleSpan.textContent = `DNI: ${node.data?.dni || 'sin datos'} (${node.state})`;
-        }
-    }
-
     startNodeDrag(e, node) {
         e.stopPropagation();
         e.preventDefault();
@@ -936,10 +924,13 @@ class NodeGraphEditor extends EventEmitter {
         this.updateNodeDisplay(node);
     }
 
+  
+
     updateNodeDisplay(node) {
         const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
         if (!nodeEl) return;
         
+    
         const titleSpan = nodeEl.querySelector(node.type === 'dni' ? 
             '.node-title-main span:last-child' : 
             '.node-title-main span');
