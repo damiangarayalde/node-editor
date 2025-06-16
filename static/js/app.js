@@ -65,6 +65,12 @@ class BaseNode {
         this.outputs = [];
         this.data = null;
     }
+
+    // Default renderer (subclasses can override)
+    renderContent(editor, container) {
+        editor.renderDefaultNode(this, container);
+    }
+
 }
 
 class DNINode extends BaseNode {
@@ -81,6 +87,9 @@ class DNINode extends BaseNode {
             address: ''
         };
     }
+    renderContent(editor, container) {
+        editor.renderDNINode(this, container);
+    }
 }
 
 class DocBuilderNode extends BaseNode {
@@ -92,6 +101,9 @@ class DocBuilderNode extends BaseNode {
             { id: `in_${id}_comprador`, name: 'Comprador' }
         ];
         this.outputs = [{ id: `out_${id}`, name: 'Output' }];
+    }
+    renderContent(editor, container) {
+        editor.renderDocBuilderNode(this, container);
     }
 }
 
@@ -236,17 +248,22 @@ class NodeEditor extends EventEmitter {
         const header = this.createNodeHeader(node);
         const content = document.createElement('div');
         content.className = 'node-content';
-        
-        // Render specific node type content
-        switch(node.type) {
-            case 'dni':
-                this.renderDNINode(node, content);
-                break;
-            case 'DocBuilder':
-                this.renderDocBuilderNode(node, content);
-                break;
-            default:
-                this.renderDefaultNode(node, content);
+
+        // Delegate content rendering to node instance if present. If not, fallback by type so
+        // nodes loaded from persistence (plain JSON objects) still display correctly.
+        if (typeof node.renderContent === 'function') {
+            node.renderContent(this, content);
+        } else {
+            switch (node.type) {
+                case 'dni':
+                    this.renderDNINode(node, content);
+                    break;
+                case 'DocBuilder':
+                    this.renderDocBuilderNode(node, content);
+                    break;
+                default:
+                    this.renderDefaultNode(node, content);
+            }
         }
         
         nodeEl.appendChild(header);
