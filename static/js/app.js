@@ -1,4 +1,5 @@
 import { NodeStates, BaseNode, DNINode, DocBuilderNode, reviveNode } from './nodes.js';
+import { getTemplateText, replaceFieldValues } from './renderers/docBuilderRenderer.js';
 
 class EventEmitter {
     constructor() {
@@ -625,7 +626,7 @@ class NodeGraphEditor extends EventEmitter {
         }
     }
 
-    // Step 1: Get input fields from connected nodes
+    // to docbuilder
     getInputFields(outputNode) {
         const fields = {
             vendedor: [],
@@ -729,7 +730,6 @@ class NodeGraphEditor extends EventEmitter {
         return text;
     }
 
-    // Update the existing updateOutputText method to use the new methods
     async updateOutputText(targetId) {
         const outputNode = this.nodes.find(node => {
             return node.type === 'DocBuilder' && node.inputs.some(input => input.id === targetId);
@@ -744,11 +744,9 @@ class NodeGraphEditor extends EventEmitter {
                     // Get the fields
                     const fields = this.getInputFields(outputNode);
                     
-                    // Get the LLM-generated template
-                    const template = await this.getTemplateText(fields);
-                    
-                    // Replace the values
-                    const finalText = this.replaceFieldValues(template, fields);
+                    // Get the LLM-generated template and replace values
+                    const template = await getTemplateText(fields);
+                    const finalText = replaceFieldValues(template, fields);
                     
                     // Create the output div
                     const textDiv = document.createElement('div');
