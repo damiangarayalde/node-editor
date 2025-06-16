@@ -3,21 +3,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class NodesServiceError(Exception):
-    """Custom exception for nodes service errors"""
+
+class NodeGraphDataServiceError(Exception):
+    """Custom exception for graph–data service errors"""
     pass
 
-class NodesService:
-    """Service for handling node-related operations"""
-    
+
+class NodeGraphDataService:
+    """Service for providing and persisting the node-graph data used by the frontend."""
+
     @staticmethod
-    def get_default_nodes() -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Get the default nodes configuration
-        
-        Returns:
-            Dict containing 'nodes' and 'connections' lists
-        """
+    def get_default_node_graph() -> Dict[str, List[Dict[str, Any]]]:
+        """Return the default graph (nodes + connections) that the client loads on first visit."""
         return {
             'nodes': [
                 {
@@ -56,21 +53,18 @@ class NodesService:
             ],
             'connections': []
         }
-    
+
     @staticmethod
-    def save_nodes(nodes_data: Dict[str, Any]) -> None:
-        """
-        Save nodes data
-        
-        Args:
-            nodes_data: Dictionary containing nodes and connections data
-            
-        Note:
-            In a real application, this would save to a database
-        """
+    def save_node_graph(graph_data: Dict[str, Any]) -> None:
+        """Pretend-persist the supplied graph (nodes + connections).
+
+        In a real application this would talk to a database; for now we just log."""
         try:
-            # TODO: Implement actual persistence (e.g., database)
-            logger.info(f"Saving {len(nodes_data.get('nodes', []))} nodes and {len(nodes_data.get('connections', []))} connections")
-        except Exception as e:
-            logger.error(f"Error saving nodes: {str(e)}")
-            raise NodesServiceError(f"Failed to save nodes: {str(e)}")
+            logger.info(
+                "Saving %s nodes and %s connections",
+                len(graph_data.get('nodes', [])),
+                len(graph_data.get('connections', []))
+            )
+        except Exception as exc:
+            logger.error("Error saving graph: %s", exc)
+            raise GraphDataServiceError(f"Failed to save graph: {exc}")
