@@ -42,6 +42,37 @@ export class BaseNode {
     renderContent(editor, container) {
         editor.renderDefaultNode(this, container);
     }
+
+    // Creates the header HTML element for the node
+    createNodeHeader(editor) {
+        const header = document.createElement('div');
+        header.className = 'node-header';
+        
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'node-title';
+        
+        const titleMain = document.createElement('div');
+        titleMain.className = 'node-title-main';
+        
+        const title = document.createElement('span');
+        title.textContent = this.title;
+        titleMain.appendChild(title);
+        
+        // Add delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-node-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            editor.showDeleteConfirmation(this, () => editor.deleteNode(this.id));
+        };
+        
+        titleContainer.appendChild(titleMain);
+        titleContainer.appendChild(deleteBtn);
+        header.appendChild(titleContainer);
+        
+        return header;
+    }
 }
 
 // ---------------------------------------------------------------------------

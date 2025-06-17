@@ -67,7 +67,6 @@ class NodeGraphEditor extends EventEmitter {
         
         this.init();
     }
-
     init() {
         console.log('Initializing editor...');
         this.editor = document.getElementById('editor');
@@ -91,7 +90,6 @@ class NodeGraphEditor extends EventEmitter {
         this.setupEventListeners();
         this.loadNodes();
     }
-
     setupEventListeners() {
         // Update node button listeners with console logs for debugging
         document.querySelectorAll('.node-type-btn').forEach(button => {
@@ -173,8 +171,8 @@ class NodeGraphEditor extends EventEmitter {
         nodeEl.draggable = true;
         nodeEl.addEventListener('dragstart', (e) => e.preventDefault());
         
-        // Create base structure
-        const header = this.createNodeHeader(node);
+        // Create base structure using the node's createNodeHeader method
+        const header = node.createNodeHeader(this);
         const content = document.createElement('div');
         content.className = 'node-content';
 
@@ -187,36 +185,6 @@ class NodeGraphEditor extends EventEmitter {
         
         // Make node draggable
         header.addEventListener('mousedown', (e) => this.startNodeDrag(e, node));
-    }
-
-    createNodeHeader(node) {
-        const header = document.createElement('div');
-        header.className = 'node-header';
-        
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'node-title';
-        
-        const titleMain = document.createElement('div');
-        titleMain.className = 'node-title-main';
-        
-        const title = document.createElement('span');
-        title.textContent = node.title;
-        titleMain.appendChild(title);
-        
-        // Add delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-node-btn';
-        deleteBtn.innerHTML = '🗑️';
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.showDeleteConfirmation(node, () => this.deleteNode(node.id));
-        };
-        
-        titleContainer.appendChild(titleMain);
-        titleContainer.appendChild(deleteBtn);
-        header.appendChild(titleContainer);
-        
-        return header;
     }
 
 
